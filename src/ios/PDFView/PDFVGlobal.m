@@ -163,35 +163,22 @@ void APP_Init()
     Global_setCMYKProfile([cmyk_path UTF8String]);
 
     NSString *fpath;
-    fpath = [[NSBundle mainBundle] pathForResource:@"00" ofType:nil];
-    Global_loadStdFont( 0, [fpath UTF8String] );
-    fpath = [[NSBundle mainBundle] pathForResource:@"01" ofType:nil];
-    Global_loadStdFont( 1, [fpath UTF8String] );
-    fpath = [[NSBundle mainBundle] pathForResource:@"02" ofType:nil];
-    Global_loadStdFont( 2, [fpath UTF8String] );
-    fpath = [[NSBundle mainBundle] pathForResource:@"03" ofType:nil];
-    Global_loadStdFont( 3, [fpath UTF8String] );
-    fpath = [[NSBundle mainBundle] pathForResource:@"04" ofType:nil];
-    Global_loadStdFont( 4, [fpath UTF8String] );
-    fpath = [[NSBundle mainBundle] pathForResource:@"05" ofType:nil];
-    Global_loadStdFont( 5, [fpath UTF8String] );
-    fpath = [[NSBundle mainBundle] pathForResource:@"06" ofType:nil];
-    Global_loadStdFont( 6, [fpath UTF8String] );
-    fpath = [[NSBundle mainBundle] pathForResource:@"07" ofType:nil];
-    Global_loadStdFont( 7, [fpath UTF8String] );
-    fpath = [[NSBundle mainBundle] pathForResource:@"08" ofType:nil];
-    Global_loadStdFont( 8, [fpath UTF8String] );
-    fpath = [[NSBundle mainBundle] pathForResource:@"09" ofType:nil];
-    Global_loadStdFont( 9, [fpath UTF8String] );
-    fpath = [[NSBundle mainBundle] pathForResource:@"10" ofType:nil];
-    Global_loadStdFont( 10, [fpath UTF8String] );
-    fpath = [[NSBundle mainBundle] pathForResource:@"11" ofType:nil];
-    Global_loadStdFont( 11, [fpath UTF8String] );
-    fpath = [[NSBundle mainBundle] pathForResource:@"12" ofType:nil];
-    Global_loadStdFont( 12, [fpath UTF8String] );
-    fpath = [[NSBundle mainBundle] pathForResource:@"13" ofType:nil];
-    Global_loadStdFont( 13, [fpath UTF8String] );
-    
+    // the build step is expecting to copy in resources which are not zero padded, however the code expects zero padded font resource files
+    // add a fall-back when the file isn't found
+        for (int i = 0; i <= 13; i++)
+        {
+            // try zero pad first
+            fpath = [[NSBundle mainBundle] pathForResource:[NSString stringWithFormat: @"0%i", i] ofType:nil];
+            if (!fpath) {
+                // if that fails, try without zero pad
+                fpath = [[NSBundle mainBundle] pathForResource:[NSString stringWithFormat: @"%i", i] ofType:nil];
+            }
+            if (fpath) {
+                Global_loadStdFont( 0, [fpath UTF8String] );
+            } else {
+                NSLog(@"Unable to find resource path for: %d", i);
+            }
+        }
     Global_fontfileListStart();
 
     fpath = [[NSBundle mainBundle] pathForResource:@"argbsn00lp.ttf" ofType:nil];

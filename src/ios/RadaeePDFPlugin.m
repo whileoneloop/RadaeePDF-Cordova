@@ -365,10 +365,8 @@
     if (disableToolbar) {
         [m_pdf setHideLineImage:YES];
         [m_pdf setHideRectImage:YES];
-        [m_pdf setHidePrintImage:YES];
         [m_pdf setHideSearchImage:YES];
         [m_pdf setHideEllipseImage:YES];
-        [m_pdf setHideOutlineImage:YES];
         [m_pdf setHideBookmarkImage:YES];
         [m_pdf setHideViewModeImage:YES];
         [m_pdf setHideBookmarkListImage:YES];
@@ -376,13 +374,15 @@
         [m_pdf setHideLineImage:NO];
         [m_pdf setHideRectImage:NO];
         [m_pdf setHidePrintImage:NO];
-        [m_pdf setHideSearchImage:NO];
         [m_pdf setHideEllipseImage:NO];
-        [m_pdf setHideOutlineImage:NO];
         [m_pdf setHideBookmarkImage:NO];
         [m_pdf setHideViewModeImage:NO];
         [m_pdf setHideBookmarkListImage:NO];
     }
+    
+    // always hide these images
+    [m_pdf setHidePrintImage:YES];
+    [m_pdf setHideOutlineImage:YES];
     
     /*
      SetColor, Available features
@@ -438,6 +438,7 @@
     
     if (iconsBackgroundColor != 0) {
         navController.navigationBar.tintColor = UIColorFromRGB(iconsBackgroundColor);
+        //navController.navigationBar.tintColor = [UIColor greenColor];
     }
     
     [navController.navigationBar setTranslucent:NO];
