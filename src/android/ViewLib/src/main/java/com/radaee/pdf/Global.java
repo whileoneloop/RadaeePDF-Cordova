@@ -341,7 +341,7 @@ public class Global
 	 * navigation mode, 0:thumbnail view 1:seekbar view
 	 */
 	public static int navigationMode = 1;
-	public static boolean debug_mode = true;
+	public static boolean debug_mode = false;
 	public static boolean highlight_annotation = true;
 	public static boolean save_thumb_in_cache = true;
 	/**
@@ -740,7 +740,7 @@ public class Global
 		render_mode = recommandedRenderMode();// 0,1,2 0:draft 1:normal 2:best with over print support.
 		dark_mode = false;// dark mode
 		zoomLevel = 3;
-        debug_mode = true;
+        debug_mode = false;
 		setAnnotTransparency(annotTransparencyColor);
 	}
 

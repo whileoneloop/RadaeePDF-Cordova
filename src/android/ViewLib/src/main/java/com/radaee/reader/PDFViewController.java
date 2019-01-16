@@ -179,8 +179,12 @@ public class PDFViewController implements OnClickListener, SeekBar.OnSeekBarChan
 		view_vert.setOnClickListener(this);
 		view_single.setOnClickListener(this);
 		view_dual.setOnClickListener(this);
-		SetBtnEnabled(btn_annot, m_view.PDFCanSave());
-		SetBtnEnabled(btn_print, m_view.PDFCanSave());
+
+		// Hide buttons that can't be used.
+		if (!m_view.PDFCanSave()) {
+			btn_annot.setVisibility(View.GONE);
+			btn_print.setVisibility(View.GONE);
+		}
 
 		//Nermeen, show/hide buttons based on license type
 		if(Global.isLicenseActivated()) {
