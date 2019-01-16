@@ -7,6 +7,10 @@ module.exports = function (ctx) {
     if (ctx.opts.platforms.indexOf('android') < 0) {
         return;
     }
+
+    console.log('ctx.opts', ctx.opts);
+    console.log('projectRoot', ctx.opts.projectRoot);
+
     var fs = ctx.requireCordovaModule('fs'),
         path = ctx.requireCordovaModule('path'),
         deferral = ctx.requireCordovaModule('q').defer();
@@ -34,21 +38,22 @@ module.exports = function (ctx) {
     
     var replaceWith = getConfidId(data) + ".R";
     
+    const appSrcJavaDir = 'app/src/main/java';
     var platformRoot = path.join(ctx.opts.projectRoot, 'platforms/android');
     var fileImportR = [
-		{filePath: 'src/com/radaee/cordova/RadaeePDFPlugin.java', importStatement: 'com.radaee.viewlib.R'},
-    	{filePath: 'src/com/radaee/pdf/Global.java', importStatement: 'com.radaee.viewlib.R'},
-    	{filePath: 'src/com/radaee/reader/PDFLayoutView.java', importStatement: 'com.radaee.viewlib.R'},
-    	{filePath: 'src/com/radaee/reader/PDFNavAct.java', importStatement: 'com.radaee.viewlib.R'},
-    	{filePath: 'src/com/radaee/reader/PDFViewAct.java', importStatement: 'com.radaee.viewlib.R'},
-    	{filePath: 'src/com/radaee/reader/PDFViewController.java', importStatement: 'com.radaee.viewlib.R'},
-		{filePath: 'src/com/radaee/reader/PDFPagerAct.java', importStatement: 'com.radaee.reader.R'},
-    	{filePath: 'src/com/radaee/util/OutlineListAdt.java', importStatement: 'com.radaee.viewlib.R'},
-    	{filePath: 'src/com/radaee/util/PDFGridItem.java', importStatement: 'com.radaee.viewlib.R'},
-		{filePath: 'src/com/radaee/util/PopupEditAct.java', importStatement: 'com.radaee.viewlib.R'},
-		{filePath: 'src/com/radaee/util/CommonUtil.java', importStatement: 'com.radaee.viewlib.R'},
-		{filePath: 'src/com/radaee/util/RadaeePDFManager.java', importStatement: 'com.radaee.viewlib.R'},
-		{filePath: 'src/com/radaee/util/BookmarkHandler.java', importStatement: 'com.radaee.viewlib.R'}
+	{filePath: `${appSrcJavaDir}/com/radaee/cordova/RadaeePDFPlugin.java`, importStatement: 'com.radaee.viewlib.R'},
+    	{filePath: `${appSrcJavaDir}/com/radaee/pdf/Global.java`, importStatement: 'com.radaee.viewlib.R'},
+    	{filePath: `${appSrcJavaDir}/com/radaee/reader/PDFLayoutView.java`, importStatement: 'com.radaee.viewlib.R'},
+    	{filePath: `${appSrcJavaDir}/com/radaee/reader/PDFNavAct.java`, importStatement: 'com.radaee.viewlib.R'},
+    	{filePath: `${appSrcJavaDir}/com/radaee/reader/PDFViewAct.java`, importStatement: 'com.radaee.viewlib.R'},
+    	{filePath: `${appSrcJavaDir}/com/radaee/reader/PDFViewController.java`, importStatement: 'com.radaee.viewlib.R'},
+	{filePath: `${appSrcJavaDir}/com/radaee/reader/PDFPagerAct.java`, importStatement: 'com.radaee.reader.R'},
+    	{filePath: `${appSrcJavaDir}/com/radaee/util/OutlineListAdt.java`, importStatement: 'com.radaee.viewlib.R'},
+    	{filePath: `${appSrcJavaDir}/com/radaee/util/PDFGridItem.java`, importStatement: 'com.radaee.viewlib.R'},
+	{filePath: `${appSrcJavaDir}/com/radaee/util/PopupEditAct.java`, importStatement: 'com.radaee.viewlib.R'},
+	{filePath: `${appSrcJavaDir}/com/radaee/util/CommonUtil.java`, importStatement: 'com.radaee.viewlib.R'},
+	{filePath: `${appSrcJavaDir}/com/radaee/util/RadaeePDFManager.java`, importStatement: 'com.radaee.viewlib.R'},
+	{filePath: `${appSrcJavaDir}/com/radaee/util/BookmarkHandler.java`, importStatement: 'com.radaee.viewlib.R'}
     ];
 
 
@@ -59,7 +64,7 @@ module.exports = function (ctx) {
     
     fileImportR.forEach(function(val) {
     	var fullfilename = path.join(platformRoot, val.filePath);
-    	console.log('*  Inject in file: ' + fullfilename + ' the import statemet: ' + val.importStatement + '  *');
+    	console.log('*  Inject in file: ' + fullfilename + ' the import statement: ' + val.importStatement + '  *');
     	if (fs.existsSync(fullfilename)) {
     		replace_string_in_file(fullfilename, val.importStatement, replaceWith);
     	} else {
@@ -67,7 +72,7 @@ module.exports = function (ctx) {
         }
     });
 	
-	replace_string_in_file(path.join(platformRoot, 'src/com/radaee/reader/PDFViewController.java'), 'private int mNavigationMode = NAVIGATION_SEEK;', 'private int mNavigationMode = NAVIGATION_THUMBS;');
+	replace_string_in_file(path.join(platformRoot, `${appSrcJavaDir}/com/radaee/reader/PDFViewController.java`), 'private int mNavigationMode = NAVIGATION_SEEK;', 'private int mNavigationMode = NAVIGATION_THUMBS;');
 	
-	replace_string_in_file(path.join(platformRoot, 'src/com/radaee/reader/PDFViewAct.java'), 'static protected Document ms_tran_doc;', 'static public Document ms_tran_doc;');
+	replace_string_in_file(path.join(platformRoot, `${appSrcJavaDir}/com/radaee/reader/PDFViewAct.java`), 'static protected Document ms_tran_doc;', 'static public Document ms_tran_doc;');
 }
