@@ -40,7 +40,13 @@
         <!-- Plugin source -->
         <source-file src="src/android/RadaeePDFPlugin.java" target-dir="src/com/radaee/cordova" />
         <source-file src="src/android/ViewLib/libs/com.radaee.view.jar" target-dir="libs" />
-		<source-file src="src/android/ViewLib/libs/android-support-v4.jar" target-dir="libs" />
+        <!--
+            TODO: 
+            this is commented out for now, and it appears to build provided another plugin brings in android-support
+            work out how to bring this in without breaking phoneagap-push-plugin which needs a newer version of android-support library, or how to indicate Radaeepdf can
+            use the same google-supplied version which phonegap-push-plugin has a dependency on
+        -->
+		<!-- <source-file src="src/android/ViewLib/libs/android-support-v4.jar" target-dir="libs" /> -->
 
         <!-- Radaee source - java.com.radaee.pdf -->
         <source-file src="src/android/ViewLib/src/main/java/com/radaee/pdf/adv/Obj.java" target-dir="src/com/radaee/pdf/adv" />
