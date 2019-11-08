@@ -390,8 +390,8 @@
     }
     
     // always hide these images
-    [m_pdf setHidePrintImage:YES];
-    [m_pdf setHideOutlineImage:YES];
+    //[m_pdf setHidePrintImage:YES];
+    //[m_pdf setHideOutlineImage:YES];
     
     /*
      SetColor, Available features

@@ -1095,19 +1095,19 @@
                                         [self viewMenu];
                                     }];
         
-        UIAlertAction *savePDF = [UIAlertAction actionWithTitle:NSLocalizedString(@"Save", nil) style:UIAlertActionStyleDefault handler:^(UIAlertAction * action)
-                                  {
-                                      [self savePdf];
-                                  }];
-        
-        UIAlertAction *printPDF =  [UIAlertAction actionWithTitle:NSLocalizedString(@"Print", nil) style:UIAlertActionStyleDefault handler:^(UIAlertAction * action)
-                                    {
-                                        [self printPdf];
-                                    }];
-        UIAlertAction *sharePDF =  [UIAlertAction actionWithTitle:NSLocalizedString(@"Share", nil) style:UIAlertActionStyleDefault handler:^(UIAlertAction * action)
-                                    {
-                                        [self sharePDF];
-                                    }];
+//        UIAlertAction *savePDF = [UIAlertAction actionWithTitle:NSLocalizedString(@"Save", nil) style:UIAlertActionStyleDefault handler:^(UIAlertAction * action)
+//                                  {
+//                                      [self savePdf];
+//                                  }];
+//
+//        UIAlertAction *printPDF =  [UIAlertAction actionWithTitle:NSLocalizedString(@"Print", nil) style:UIAlertActionStyleDefault handler:^(UIAlertAction * action)
+//                                    {
+//                                        [self printPdf];
+//                                    }];
+//        UIAlertAction *sharePDF =  [UIAlertAction actionWithTitle:NSLocalizedString(@"Share", nil) style:UIAlertActionStyleDefault handler:^(UIAlertAction * action)
+//                                    {
+//                                        [self sharePDF];
+//                                    }];
         
         UIAlertAction *cancel =  [UIAlertAction actionWithTitle:NSLocalizedString(@"Cancel", nil) style:UIAlertActionStyleCancel handler:^(UIAlertAction * action)
                                   {
@@ -1118,17 +1118,18 @@
         [addBookMark setValue:[(_addBookmarkImage) ? _addBookmarkImage : [UIImage imageNamed:@"btn_add"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate] forKey:@"image"];
         [bookMarkList setValue:[(_bookmarkImage) ? _bookmarkImage : [UIImage imageNamed:@"btn_show"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate] forKey:@"image"];
         [viewMenu setValue:[(_outlineImage) ? _outlineImage : [UIImage imageNamed:@"btn_outline"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate] forKey:@"image"];
-        [savePDF setValue:[(_saveImage) ? _saveImage : [UIImage imageNamed:@"btn_save"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate] forKey:@"image"];
-        [printPDF setValue:[(_printImage) ? _printImage : [UIImage imageNamed:@"btn_print"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate] forKey:@"image"];
-        [sharePDF setValue:[(_shareImage) ? _shareImage : [UIImage imageNamed:@"btn_share"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate] forKey:@"image"];
+        
+//        [savePDF setValue:[(_saveImage) ? _saveImage : [UIImage imageNamed:@"btn_save"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate] forKey:@"image"];
+//        [printPDF setValue:[(_printImage) ? _printImage : [UIImage imageNamed:@"btn_print"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate] forKey:@"image"];
+//        [sharePDF setValue:[(_shareImage) ? _shareImage : [UIImage imageNamed:@"btn_share"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate] forKey:@"image"];
         
         [moreItemsContainer addAction:viewMode];
         [moreItemsContainer addAction:addBookMark];
         [moreItemsContainer addAction:bookMarkList];
         [moreItemsContainer addAction:viewMenu];
-        [moreItemsContainer addAction:savePDF];
-        [moreItemsContainer addAction:printPDF];
-        [moreItemsContainer addAction:sharePDF];
+//        [moreItemsContainer addAction:savePDF];
+//        [moreItemsContainer addAction:printPDF];
+//        [moreItemsContainer addAction:sharePDF];
         [moreItemsContainer addAction:cancel];
         moreItemsContainer.view.tintColor = [self getTintColor];
         
