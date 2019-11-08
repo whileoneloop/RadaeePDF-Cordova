@@ -23,12 +23,12 @@
     UIImage *addBookMark = (_addBookmarkImage) ? _addBookmarkImage : [UIImage imageNamed:@"btn_add"];
     UIImage *bookMarkList = (_bookmarkImage) ? _bookmarkImage : [UIImage imageNamed:@"btn_show"];
     UIImage *viewMenu = (_outlineImage) ? _outlineImage : [UIImage imageNamed:@"btn_outline"];
-    UIImage *savePDF = (_saveImage) ? _saveImage : [UIImage imageNamed:@"btn_save"];
-    UIImage *printPDF = (_printImage) ? _printImage : [UIImage imageNamed:@"btn_print"];
-    UIImage *share = (_shareImage) ? _shareImage : [UIImage imageNamed:@"btn_share"];
+    // UIImage *savePDF = (_saveImage) ? _saveImage : [UIImage imageNamed:@"btn_save"];
+    // UIImage *printPDF = (_printImage) ? _printImage : [UIImage imageNamed:@"btn_print"];
+    // UIImage *share = (_shareImage) ? _shareImage : [UIImage imageNamed:@"btn_share"];
     
-    actionTitle = [NSArray arrayWithObjects:NSLocalizedString(@"View Mode", nil),NSLocalizedString(@"Add Bookmark", nil), NSLocalizedString(@"Bookmark List", nil), NSLocalizedString(@"View Menu", nil), NSLocalizedString(@"Save", nil), NSLocalizedString(@"Print", nil), NSLocalizedString(@"Share", nil), nil];
-    actionImage = [NSArray arrayWithObjects:viewMode, addBookMark, bookMarkList, viewMenu, savePDF, printPDF, share, nil];
+    actionTitle = [NSArray arrayWithObjects:NSLocalizedString(@"View Mode", nil),NSLocalizedString(@"Add Bookmark", nil), NSLocalizedString(@"Bookmark List", nil), NSLocalizedString(@"View Menu", nil), nil];
+    actionImage = [NSArray arrayWithObjects:viewMode, addBookMark, bookMarkList, viewMenu, nil];
 }
 
 - (void)didReceiveMemoryWarning {
