@@ -1,6 +1,6 @@
 #import <Cordova/CDV.h>
 
-@class RDPDFViewController;
+@class RDLoPDFViewController;
 
 // define the protocol for the delegate
 @protocol RadaeePDFPluginDelegate
@@ -13,11 +13,12 @@
 - (void)didSearchTerm:(NSString *)term found:(BOOL)found;
 - (void)didTapOnPage:(int)page atPoint:(CGPoint)point;
 - (void)didTapOnAnnotationOfType:(int)type atPage:(int)page atPoint:(CGPoint)point;
+- (void)onAnnotExported:(NSString *)path;
 @end;
 
 @interface RadaeePDFPlugin : CDVPlugin{
     CDVInvokedUrlCommand* cdv_command;
-    RDPDFViewController *m_pdf;
+    RDLoPDFViewController *m_pdf;
     
     NSURLConnection *pdfConn;
     NSString *url;
@@ -32,6 +33,7 @@
     int highlightColor;
     int ovalColor;
     int selColor;
+    int arrowColor;
     
     int thumbBackgroundColor;
     int gridBackgroundColor;
@@ -55,6 +57,18 @@
 
 @property (nonatomic, retain) CDVInvokedUrlCommand *cdv_command;
 
+@property (nonatomic, retain) CDVInvokedUrlCommand *cdv_willShowReader;
+@property (nonatomic, retain) CDVInvokedUrlCommand *cdv_didShowReader;
+@property (nonatomic, retain) CDVInvokedUrlCommand *cdv_willCloseReader;
+@property (nonatomic, retain) CDVInvokedUrlCommand *cdv_didCloseReader;
+@property (nonatomic, retain) CDVInvokedUrlCommand *cdv_didChangePage;
+@property (nonatomic, retain) CDVInvokedUrlCommand *cdv_didSearchTerm;
+@property (nonatomic, retain) CDVInvokedUrlCommand *cdv_didTapOnPage;
+@property (nonatomic, retain) CDVInvokedUrlCommand *cdv_didDoubleTapOnPage;
+@property (nonatomic, retain) CDVInvokedUrlCommand *cdv_didLongPressOnPage;
+@property (nonatomic, retain) CDVInvokedUrlCommand *cdv_didTapOnAnnotationOfType;
+@property (nonatomic, retain) CDVInvokedUrlCommand *cdv_onAnnotExported;
+
 @property (nonatomic) int viewMode;
 @property (strong, nonatomic) NSString *lastOpenedPath;
 @property (strong, nonatomic) UIImage *viewModeImage;
@@ -69,6 +83,7 @@
 @property (strong, nonatomic) UIImage *deleteImage;
 @property (strong, nonatomic) UIImage *doneImage;
 @property (strong, nonatomic) UIImage *removeImage;
+@property (strong, nonatomic) UIImage *exportImage;
 @property (strong, nonatomic) UIImage *prevImage;
 @property (strong, nonatomic) UIImage *nextImage;
 
@@ -98,6 +113,11 @@
 - (void)setToolbarEnabled:(CDVInvokedUrlCommand*)command;
 - (void)extractTextFromPage:(CDVInvokedUrlCommand*)command;
 - (void)encryptDocAs:(CDVInvokedUrlCommand *)command;
+- (void)addAnnotAttachment:(CDVInvokedUrlCommand *)command;
+- (void)renderAnnotToFile:(CDVInvokedUrlCommand *)command;
+- (void)flatAnnots:(CDVInvokedUrlCommand *)command;
+- (void)flatAnnotAtPage:(CDVInvokedUrlCommand *)command;
+- (void)saveDocumentToPath:(CDVInvokedUrlCommand *)command;
 
 // Form Manager
 
@@ -105,6 +125,14 @@
 - (void)JSONFormFieldsAtPage:(CDVInvokedUrlCommand*)command;
 
 - (void)setFormFieldWithJSON:(CDVInvokedUrlCommand *)command;
+
+// FTS Methods
+- (void)FTS_SetIndexDB:(CDVInvokedUrlCommand*)command;
+- (void)FTS_AddIndex:(CDVInvokedUrlCommand*)command;
+- (void)FTS_RemoveFromIndex:(CDVInvokedUrlCommand*)command;
+- (void)FTS_Search:(CDVInvokedUrlCommand*)command;
+- (void)SetSearchType:(CDVInvokedUrlCommand*)command;
+- (void)GetSearchType:(CDVInvokedUrlCommand*)command;
 
 + (RadaeePDFPlugin *)pluginInit;
 
@@ -123,5 +151,18 @@
 - (void)setDoublePageEnabled:(BOOL)enabled;
 - (void)toggleThumbSeekBar:(int)mode;
 - (void)setColor:(int)color forFeature:(int)feature;
+
+// Callbacks
+- (void)willShowReaderCallback:(CDVInvokedUrlCommand *)command;
+- (void)didShowReaderCallback:(CDVInvokedUrlCommand *)command;
+- (void)willCloseReaderCallback:(CDVInvokedUrlCommand *)command;
+- (void)didCloseReaderCallback:(CDVInvokedUrlCommand *)command;
+- (void)didChangePageCallback:(CDVInvokedUrlCommand *)command;
+- (void)didSearchTermCallback:(CDVInvokedUrlCommand *)command;
+- (void)didTapOnPageCallback:(CDVInvokedUrlCommand *)command;
+- (void)didDoubleTapOnPageCallback:(CDVInvokedUrlCommand *)command;
+- (void)didLongPressOnPageCallback:(CDVInvokedUrlCommand *)command;
+- (void)didTapOnAnnotationOfTypeCallback:(CDVInvokedUrlCommand *)command;
+- (void)onAnnotExportedCallback:(CDVInvokedUrlCommand *)command;
 
 @end

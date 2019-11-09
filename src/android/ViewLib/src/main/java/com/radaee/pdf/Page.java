@@ -454,6 +454,26 @@ public class Page
 		{
 			return Page.getAnnotJS(page.hand, hand);
 		}
+
+		/**
+		 * get additional action, for java script.
+		 * @param idx ievent type as below:<br/>
+		 * 0:(Optional; PDF 1.2) An action to be performed when the cursor enters the annotation’s active area.<br/>
+		 * 1:(Optional; PDF 1.2) An action to be performed when the cursor exits the annotation’s active area.<br/>
+		 * 2 (Optional; PDF 1.2) An action to be performed when the mouse button is pressed inside the annotation’s active area. (The name D stands for "down.")<br/>
+		 * 3:(Optional; PDF 1.2) An action to be performed when the mouse button is released inside the annotation’s active area. (The name U stands for "up.")<br/>
+		 * 4:(Optional; PDF 1.2; widget annotations only) An action to be performed when the annotation receives the input focus.<br/>
+		 * 5:(Optional; PDF 1.2; widget annotations only) (Uppercase B, lowercase L) An action to be performed when the annotation loses the input focus. (The name Bl stands for "blurred.")<br/>
+		 * 6:(Optional; PDF 1.5) An action to be performed when the page containing the annotation is opened (for example, when the user navigates to it from the next or previous page or by means of a link annotation or outline item). The action is executed after the O action in the page’s additional-actions dictionary (see Table 8.45) and the OpenAction entry in the document catalog (see Table 3.25), if such actions are present.<br/>
+		 * 7:(Optional; PDF 1.5) An action to be performed when the page containing the annotation is closed (for example, when the user navigates to the next or previous page, or follows a link annotation or outline item). The action is executed before the C action in the page’s additional-actions dictionary (see Table 8.45), if present.<br/>
+		 * 8:(Optional; PDF 1.5) An action to be performed when the page containing the annotation becomes visible in the viewer application’s user interface.<br/>
+		 * 9:(Optional; PDF 1.5) An action to be performed when the page containing the annotation is no longer visible in the viewer application’s user interface.
+		 * @return string of java-script, or null.
+		 */
+		final public String GetAdditionalJS(int idx)
+		{
+			return Page.getAnnotAdditionalJS(page.hand, hand, idx);
+		}
 		/**
 		 * get annotation's file link path string.<br/>
 		 * this method require professional or premium license
@@ -675,13 +695,24 @@ public class Page
 			return Page.getAnnotEditTextRect(page.hand, hand, rect);
 		}
 		/**
-		 * get text size of edit-box.<br/>
+		 * get text size of edit-box and edit field.<br/>
 		 * this method require premium license
 		 * @return size of text, in PDF coordinate system.
 		 */
         final public float GetEditTextSize()
 		{
 			return Page.getAnnotEditTextSize(page.hand, hand);
+		}
+
+		/**
+		 * et text size of edit-box and edit field.<br/>
+		 * this method require premium license
+		 * @param fsize font size to set.
+		 * @return true or false.
+		 */
+		final public boolean SetEditTextSize(float fsize)
+		{
+			return Page.setAnnotEditTextSize(page.hand, hand, fsize);
 		}
 
 		/**
@@ -744,7 +775,7 @@ public class Page
 			return Page.getAnnotEditText(page.hand, hand);
 		}
 		/**
-		 * set contents of edit-box.<br/>
+		 * set value of edit-box.<br/>
 		 * you should re-render page to display modified data.<br/>
 		 * this method require premium license.<br/>
 		 * Notice: this method not check format as GetEditTextFormat. developers shall check format by developer self.
@@ -754,6 +785,19 @@ public class Page
         final public boolean SetEditText( String text )
 		{
 			return Page.setAnnotEditText(page.hand, hand, text);
+		}
+
+        /**
+		 * set value and appearance of edit-box.<br/>
+		 * you should re-render page to display modified data.<br/>
+		 * this method require premium license.<br/>
+		 * @param value value to be set.
+		 * @param formatted formatted appearance string that to be displayed in edit-box.
+		 * @return true or false.
+		 */
+		final public boolean SetEditText( String value, String formatted )
+		{
+			return Page.setAnnotEditText2(page.hand, hand, value, formatted);
 		}
 
         /**
@@ -807,6 +851,14 @@ public class Page
         final public boolean SetComboItem( int item )
 		{
 			return Page.setAnnotComboItem(page.hand, hand, item);
+		}
+		/**
+		 * can list select more than 1 item?
+		 * @return true or false.
+		 */
+		final public boolean IsListMultiSel()
+		{
+			return Page.isAnnotListMultiSel(page.hand, hand);
 		}
 		/**
 		 * get item count of list-box.<br/>
@@ -908,6 +960,7 @@ public class Page
 		{
 			return Page.setAnnotListSels(page.hand, hand, items);
 		}
+
 		/**
 		 * get status of check-box and radio-box.<br/>
 		 * this method require premium license
@@ -1274,10 +1327,19 @@ public class Page
 		}
 
 		/**
+		 * export data from annotation.<br/>
+		 * a premium license is required for this method.
+		 * @return a PDF object save to memory(byte array).
+		 */
+		final public byte[] Export()
+		{
+			return exportAnnot(page.hand, hand);
+		}
+		/**
 		 * sign the empty field and save the PDF file.<br/>
 		 * if the signature field is not empty(signed), it will return failed.<br/>
 		 * this method require premium license.
-		 * @param form appearence icon for signature
+		 * @param form appearance icon for signature
 		 * @param cert_file a cert file like .p12 or .pfx file, DER encoded cert file.
 		 * @param pswd password to open cert file.
 		 * @param reason sign reason will write to signature.
@@ -1302,13 +1364,17 @@ public class Page
 			return Page.findGetCount( hand );
 		}
 		/**
-		 * get find count in this page.
+		 * get first char index.
 		 * @param index 0 based index value. range:[0, FindGetCount()-1]
 		 * @return the first char index of texts, see: ObjsGetString. range:[0, ObjsGetCharCount()-1]
 		 */
 		public final int GetFirstChar( int index )
 		{
 			return Page.findGetFirstChar( hand, index );
+		}
+		public final int GetEndChar(int index)
+		{
+			return Page.findGetEndChar( hand, index );
 		}
 		/**
 		 * free memory of find session.
@@ -1373,8 +1439,10 @@ public class Page
 	static private native int objsGetCharIndex( long hand, float[] pt );
 
 	static private native long findOpen( long hand, String str, boolean match_case, boolean whole_word );
+	static private native long findOpen2( long hand, String str, boolean match_case, boolean whole_word, boolean skip_blank );
 	static private native int findGetCount( long hand_finder );
 	static private native int findGetFirstChar( long hand_finder, int index );
+	static private native int findGetEndChar( long hand_finder, int index );
 	static private native void findClose( long hand_finder );
 
 	private static native int getRotate( long hand );
@@ -1416,6 +1484,7 @@ public class Page
     static private native String getAnnotRemoteDest( long hand, long annot );
 	static private native String getAnnotURI( long hand, long annot );
 	static private native String getAnnotJS( long hand, long annot);
+	static private native String getAnnotAdditionalJS(long hand, long annot, int idx);
 	static private native String getAnnotFileLink( long hand, long annot );
 	static private native String getAnnot3D( long hand, long annot );
 	static private native String getAnnotMovie( long hand, long annot );
@@ -1440,15 +1509,18 @@ public class Page
 	static private native int getAnnotEditMaxlen( long hand, long annot );
 	static private native boolean getAnnotEditTextRect( long hand, long annot, float[] rect );
 	static private native float getAnnotEditTextSize( long hand, long annot );
+	static private native boolean setAnnotEditTextSize( long hand, long annot, float fsize );
 	static private native int getAnnotEditTextColor(long hand, long annot);
 	static private native boolean setAnnotEditTextColor(long hand, long annot, int color);
 	static private native String getAnnotEditText( long hand, long annot );
 	static private native boolean setAnnotEditText( long hand, long annot, String text );
+	static private native boolean setAnnotEditText2( long hand, long annot, String value, String formatted );
     static private native boolean setAnnotEditFont( long hand, long annot, long font);
 	static private native int getAnnotComboItemCount( long hand, long annot );
 	static private native String getAnnotComboItem( long hand, long annot, int item );
 	static private native int getAnnotComboItemSel( long hand, long annot );
 	static private native boolean setAnnotComboItem( long hand, long annot, int item );
+	static private native boolean isAnnotListMultiSel(long hand, long annot);
 	static private native int getAnnotListItemCount( long hand, long annot );
 	static private native String getAnnotListItem( long hand, long annot, int item );
 	static private native int[] getAnnotListSels( long hand, long annot );
@@ -1513,6 +1585,8 @@ public class Page
 	static private native boolean addAnnotStamp( long hand, float[] rect, int icon );
 	static private native boolean addAnnotPolygon( long hand, long path, int color, int fill_color, float width );
 	static private native boolean addAnnotPolyline( long hand, long path, int style1, int style2, int color, int fill_color, float width );
+	static private native boolean importAnnot(long page, float[] rect, byte[] data);
+	static private native byte[] exportAnnot(long page, long annot);
 
 	static private native long addResFont( long hand, long font );
 	static private native long addResImage( long hand, long image );
@@ -1565,8 +1639,8 @@ public class Page
 
 	/**
 	 * Sign and save the PDF file.<br/>
-	 * this method required premium license.
-	 * @param form appearence for sign field.
+	 * this method required premium license, and signed feature native libs, which has bigger size.
+	 * @param form appearance for sign field.
 	 * @param rect rectangle for sign field
 	 * @param cert_file a cert file like .p12 or .pfx file, DER encoded cert file.
 	 * @param pswd password to open cert file.
@@ -1585,16 +1659,16 @@ public class Page
 	 */
     final public void Close()
 	{
-		long hand_page = hand;
-		hand = 0;
-        if(m_doc != null)
-        {
-            if(m_doc.hand_val != 0)
-                close( hand_page );
-            else
-                Log.e("Bad Coding", "Document object closed, but Page object not closed, will cause memory leaks.");
-			m_doc = null;
-        }
+			long hand_page = hand;
+			hand = 0;
+			if(m_doc != null)
+            {
+                if(m_doc.hand_val != 0)
+                    close( hand_page );
+                else
+                    Log.e("Bad Coding", "Document object closed, but Page object not closed, will cause memory leaks.");
+                m_doc = null;
+            }
 	}
 	/**
 	 * prepare to render. it reset dib pixels to white value, and reset page status.<br/>
@@ -1828,6 +1902,24 @@ public class Page
 	public Finder FindOpen( String str, boolean match_case, boolean whole_word )
 	{
 		long ret = findOpen( hand, str, match_case, whole_word );
+		if( ret == 0 ) return null;
+		Finder find = new Finder();
+		find.hand = ret;
+		return find;
+	}
+
+	/**
+	 * create a find session. this can be invoked after ObjsStart<br/>
+	 * this function treats line break as blank char.
+	 * @param str key string to find.
+	 * @param match_case match case?
+	 * @param whole_word match whole word?
+	 * @param skip_blank skip blank?
+	 * @return handle of find session, or 0 if no found.
+	 */
+	public Finder FindOpen( String str, boolean match_case, boolean whole_word, boolean skip_blank )
+	{
+		long ret = findOpen2( hand, str, match_case, whole_word, skip_blank );
 		if( ret == 0 ) return null;
 		Finder find = new Finder();
 		find.hand = ret;
@@ -2607,6 +2699,18 @@ public class Page
     {
         return flate(hand);
     }
+
+	/**
+	 * import annotation from memory(byte array)<br/>
+	 * a premium license is required for this method.
+	 * @param rect [left, top, right, bottom] in PDF coordinate. which is the import annotation's position.
+	 * @param data data returned from Annotation.Export()
+	 * @return true or false.
+	 */
+    public boolean ImportAnnot(float rect[], byte data[])
+	{
+		return importAnnot(hand, rect, data);
+	}
     @Override
     protected void finalize() throws Throwable
     {

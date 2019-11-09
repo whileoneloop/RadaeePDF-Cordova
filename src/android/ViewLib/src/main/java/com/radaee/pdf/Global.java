@@ -17,7 +17,7 @@ import java.io.InputStream;
  * class for Global setting.
  * 
  * @author Radaee
- * @version 3.14
+ * @version 3.52.4
  */
 public class Global
 {
@@ -213,7 +213,7 @@ public class Global
 	 * @param hide
 	 *            true to hide, false to show.
 	 */
-	private static native void hideAnnots(boolean hide);
+	public static native void hideAnnots(boolean hide);
 
 	private static native void drawScroll(Bitmap bmp, long dib1, long dib2, int x, int y, int style, int back_side_clr);
 	/**
@@ -243,7 +243,7 @@ public class Global
 	 * @param color
 	 *            formated as 0xAARRGGBB
 	 */
-	private static native void setAnnotTransparency(int color);
+	public static native void setAnnotTransparency(int color);
 
 	/**
 	 * color for ink annotation
@@ -303,6 +303,7 @@ public class Global
 	/**
 	 * default view:<br/>
 	 * 0:vertical<br/>
+	 * 1:horizontal<br/>
 	 * 2:scroll<br/>
 	 * 3:single<br/>
 	 * 4:SingleEx<br/>
@@ -330,9 +331,25 @@ public class Global
 	 */
 	public static int thumbViewBgColor = 0x40CCCCCC;
 	/**
+	 * Thumb grid view's background color
+	 */
+	public static int thumbGridBgColor = 0xFFCCCCCC;
+	/**
 	 * Thumb view height in dp, i.e. 100 = 100dp
 	 */
 	public static int thumbViewHeight = 100;
+	/**
+	 * Thumb grid view's element height in dp, i.e. 100 = 100dp
+	 */
+	public static int thumbGridElementHeight = 150;
+	/**
+	 * Thumb grid view's element gap (the vertical/horizontal spacing)
+	 */
+	public static int thumbGridElementGap = 10;
+	/**
+	 * Thumb grid view's render mode, 0:full screen 1:justify center
+	 */
+	public static int thumbGridViewMode = 0;
 	/**
 	 * Reader view background color
 	 */
@@ -341,7 +358,7 @@ public class Global
 	 * navigation mode, 0:thumbnail view 1:seekbar view
 	 */
 	public static int navigationMode = 1;
-	public static boolean debug_mode = false;
+	public static boolean debug_mode = true;
 	public static boolean highlight_annotation = true;
 	public static boolean save_thumb_in_cache = true;
 	/**
@@ -356,10 +373,50 @@ public class Global
      * enables or disable cache during rendering
      */
     public static boolean cacheEnabled = true;
+	public static boolean trustAllHttpsHosts = false;
     public static int highlight_color = 0xFFFFFF00;//yellow
     public static int underline_color = 0xFF0000C0;//black blue
     public static int strikeout_color = 0xFFC00000;//black red
     public static int squiggle_color = 0xFF00C000;//black green
+	public static String sAnnotAuthor; //if valorized, will be used to set the annotation author while its creation
+
+	public static boolean sEnableGraphicalSignature = true;
+	public static boolean sFitSignatureToField = true; //if true, the blank space will be trimmed from the signature bitmap
+	public static String sSignPadDescr = "Sign Here";
+
+	public static boolean sExecuteAnnotJS = true;
+
+	public static boolean g_annot_lock = true;
+	public static boolean g_annot_readonly = true;
+
+	/** if true the link action will be performed immediately otherwise the user must click on the play button*/
+	public static boolean g_auto_launch_link = true;
+
+	/**
+	 *Annot Rect params
+	 */
+	public static float rect_annot_width = 3;
+	public static int rect_annot_color = 0x80FF0000;
+	public static int rect_annot_fill_color = 0x800000FF;
+
+    /**
+     *Annot Ellipse params
+     */
+    public static float ellipse_annot_width = 3;
+    public static int ellipse_annot_color = 0x80FF0000;
+    public static int ellipse_annot_fill_color = 0x800000FF;
+
+    /**
+     *Annot Line params
+     */
+    public static float line_annot_width = 3;
+    public static int line_annot_style1 = 1;
+    public static int line_annot_style2 = 0;
+    public static int line_annot_color = 0x80FF0000;
+    public static int line_annot_fill_color = 0x800000FF;
+
+    //true: calculate scale of each page, false: calculate scale based on the dimensions of the largest page
+	public static boolean fit_different_page_size = false;
 
 	static private void load_file(Resources res, int res_id, File save_file)
 	{
@@ -449,9 +506,10 @@ public class Global
 		load_cmaps( res, R.raw.cmaps, new File(files, "cmaps"), R.raw.umaps, new File(files, "umaps") );
 
 		// create temporary dictionary, to save media or attachment data.
-		File sdDir = Environment.getExternalStorageDirectory();
+		File sdDir = act.getExternalFilesDir("");
+		//File sdDir = Environment.getExternalStorageDirectory();
         File ftmp;
-		if (sdDir != null && Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED))
+		if (sdDir != null)
             ftmp = new File(sdDir, "rdtmp");
 		else
             ftmp = new File(act.getFilesDir(), "rdtmp");
@@ -498,6 +556,7 @@ public class Global
 		//save_font("/system/fonts/Roboto-Regular.ttf", "/sdcard/Roboto-Regular.ttf");
 
 		fontfileListAdd("/system/fonts/DroidSansFallback.ttf");
+		fontfileListAdd("/system/fonts/DroidSansChinese.ttf");
 		//save_font("/system/fonts/DroidSansFallback.ttf", "/sdcard/DroidSansFallback.ttf");
         fontfileListAdd("/system/fonts/NotoSansSC-Regular.otf");
 		//save_font("/system/fonts/NotoSansSC-Regular.otf", "/sdcard/NotoSansSC-Regular.otf");
@@ -505,15 +564,16 @@ public class Global
 		//save_font("/system/fonts/NotoSansTC-Regular.otf", "/sdcard/NotoSansTC-Regular.otf");
         fontfileListAdd("/system/fonts/NotoSansJP-Regular.otf");
         fontfileListAdd("/system/fonts/NotoSansKR-Regular.otf");
+		fontfileListAdd("/system/fonts/NotoSansCJK-Regular.ttc");
 		//fontfileListAdd("/system/fonts/NotoSansHebrew-Regular.ttf");
         load_truetype_font( res, R.raw.arimo, new File(files, "arimo.ttf") );//load from APP resource
         load_truetype_font( res, R.raw.arimob, new File(files, "arimob.ttf") );
         load_truetype_font( res, R.raw.arimoi, new File(files, "arimoi.ttf") );
         load_truetype_font( res, R.raw.arimobi, new File(files, "arimobi.ttf") );
-        load_truetype_font( res, R.raw.tinos, new File(files, "tinos.ttf") );
-        load_truetype_font( res, R.raw.tinosb, new File(files, "tinosb.ttf") );
-        load_truetype_font( res, R.raw.tinosi, new File(files, "tinosi.ttf") );
-        load_truetype_font( res, R.raw.tinosbi, new File(files, "tinosbi.ttf") );
+        load_truetype_font( res, R.raw.texgy, new File(files, "texgy.otf") );
+        load_truetype_font( res, R.raw.texgyb, new File(files, "texgyb.otf") );
+        load_truetype_font( res, R.raw.texgyi, new File(files, "texgyi.otf") );
+        load_truetype_font( res, R.raw.texgybi, new File(files, "texgybi.otf") );
         load_truetype_font( res, R.raw.cousine, new File(files, "cousine.ttf") );
         load_truetype_font( res, R.raw.cousineb, new File(files, "cousineb.ttf") );
         load_truetype_font( res, R.raw.cousinei, new File(files, "cousinei.ttf") );
@@ -554,49 +614,49 @@ public class Global
         fontfileMapping("Helvetica-Bold",          "Arimo Bold");
         fontfileMapping("Helvetica-BoldItalic",   "Arimo Bold Italic");
         fontfileMapping("Helvetica-Italic",        "Arimo Italic");
-        fontfileMapping("Garamond",                    "Tinos");
-        fontfileMapping("Garamond,Bold",              "Tinos Bold");
-        fontfileMapping("Garamond,BoldItalic",       "Tinos Bold Italic");
-        fontfileMapping("Garamond,Italic",            "Tinos Italic");
-        fontfileMapping("Garamond-Bold",              "Tinos Bold");
-        fontfileMapping("Garamond-BoldItalic",       "Tinos Bold Italic");
-        fontfileMapping("Garamond-Italic",            "Tinos Italic");
-        fontfileMapping("Times",                    "Tinos");
-        fontfileMapping("Times,Bold",              "Tinos Bold");
-        fontfileMapping("Times,BoldItalic",       "Tinos Bold Italic");
-        fontfileMapping("Times,Italic",            "Tinos Italic");
-        fontfileMapping("Times-Bold",              "Tinos Bold");
-        fontfileMapping("Times-BoldItalic",       "Tinos Bold Italic");
-        fontfileMapping("Times-Italic",            "Tinos Italic");
-        fontfileMapping("Times-Roman",             "Tinos");
-        fontfileMapping("Times New Roman",                "Tinos");
-        fontfileMapping("Times New Roman,Bold",          "Tinos Bold");
-        fontfileMapping("Times New Roman,BoldItalic",   "Tinos Bold Italic");
-        fontfileMapping("Times New Roman,Italic",        "Tinos Italic");
-        fontfileMapping("Times New Roman-Bold",          "Tinos Bold");
-        fontfileMapping("Times New Roman-BoldItalic",   "Tinos Bold Italic");
-        fontfileMapping("Times New Roman-Italic",        "Tinos Italic");
-        fontfileMapping("TimesNewRoman",                "Tinos");
-        fontfileMapping("TimesNewRoman,Bold",          "Tinos Bold");
-        fontfileMapping("TimesNewRoman,BoldItalic",   "Tinos Bold Italic");
-        fontfileMapping("TimesNewRoman,Italic",        "Tinos Italic");
-        fontfileMapping("TimesNewRoman-Bold",          "Tinos Bold");
-        fontfileMapping("TimesNewRoman-BoldItalic",   "Tinos Bold Italic");
-        fontfileMapping("TimesNewRoman-Italic",        "Tinos Italic");
-        fontfileMapping("TimesNewRomanPS",                "Tinos");
-        fontfileMapping("TimesNewRomanPS,Bold",          "Tinos Bold");
-        fontfileMapping("TimesNewRomanPS,BoldItalic",   "Tinos Bold Italic");
-        fontfileMapping("TimesNewRomanPS,Italic",        "Tinos Italic");
-        fontfileMapping("TimesNewRomanPS-Bold",          "Tinos Bold");
-        fontfileMapping("TimesNewRomanPS-BoldItalic",   "Tinos Bold Italic");
-        fontfileMapping("TimesNewRomanPS-Italic",        "Tinos Italic");
-        fontfileMapping("TimesNewRomanPSMT",                "Tinos");
-        fontfileMapping("TimesNewRomanPSMT,Bold",          "Tinos Bold");
-        fontfileMapping("TimesNewRomanPSMT,BoldItalic",   "Tinos Bold Italic");
-        fontfileMapping("TimesNewRomanPSMT,Italic",        "Tinos Italic");
-        fontfileMapping("TimesNewRomanPSMT-Bold",          "Tinos Bold");
-        fontfileMapping("TimesNewRomanPSMT-BoldItalic",   "Tinos Bold Italic");
-        fontfileMapping("TimesNewRomanPSMT-Italic",        "Tinos Italic");
+        fontfileMapping("Garamond",                    "TeXGyreTermes-Regular");
+        fontfileMapping("Garamond,Bold",              "TeXGyreTermes-Bold");
+        fontfileMapping("Garamond,BoldItalic",       "TeXGyreTermes-BoldItalic");
+        fontfileMapping("Garamond,Italic",            "TeXGyreTermes-Italic");
+        fontfileMapping("Garamond-Bold",              "TeXGyreTermes-Bold");
+        fontfileMapping("Garamond-BoldItalic",       "TeXGyreTermes-BoldItalic");
+        fontfileMapping("Garamond-Italic",            "TeXGyreTermes-Italic");
+        fontfileMapping("Times",                    "TeXGyreTermes-Regular");
+        fontfileMapping("Times,Bold",              "TeXGyreTermes-Bold");
+        fontfileMapping("Times,BoldItalic",       "TeXGyreTermes-BoldItalic");
+        fontfileMapping("Times,Italic",            "TeXGyreTermes-Italic");
+        fontfileMapping("Times-Bold",              "TeXGyreTermes-Bold");
+        fontfileMapping("Times-BoldItalic",       "TeXGyreTermes-BoldItalic");
+        fontfileMapping("Times-Italic",            "TeXGyreTermes-Italic");
+        fontfileMapping("Times-Roman",             "TeXGyreTermes-Regular");
+        fontfileMapping("Times New Roman",                "TeXGyreTermes-Regular");
+        fontfileMapping("Times New Roman,Bold",          "TeXGyreTermes-Bold");
+        fontfileMapping("Times New Roman,BoldItalic",   "TeXGyreTermes-BoldItalic");
+        fontfileMapping("Times New Roman,Italic",        "TeXGyreTermes-Italic");
+        fontfileMapping("Times New Roman-Bold",          "TeXGyreTermes-Bold");
+        fontfileMapping("Times New Roman-BoldItalic",   "TeXGyreTermes-BoldItalic");
+        fontfileMapping("Times New Roman-Italic",        "TeXGyreTermes-Italic");
+        fontfileMapping("TimesNewRoman",                "TeXGyreTermes-Regular");
+        fontfileMapping("TimesNewRoman,Bold",          "TeXGyreTermes-Bold");
+        fontfileMapping("TimesNewRoman,BoldItalic",   "TeXGyreTermes-BoldItalic");
+        fontfileMapping("TimesNewRoman,Italic",        "TeXGyreTermes-Italic");
+        fontfileMapping("TimesNewRoman-Bold",          "TeXGyreTermes-Bold");
+        fontfileMapping("TimesNewRoman-BoldItalic",   "TeXGyreTermes-BoldItalic");
+        fontfileMapping("TimesNewRoman-Italic",        "TeXGyreTermes-Italic");
+        fontfileMapping("TimesNewRomanPS",                "TeXGyreTermes-Regular");
+        fontfileMapping("TimesNewRomanPS,Bold",          "TeXGyreTermes-Bold");
+        fontfileMapping("TimesNewRomanPS,BoldItalic",   "TeXGyreTermes-BoldItalic");
+        fontfileMapping("TimesNewRomanPS,Italic",        "TeXGyreTermes-Italic");
+        fontfileMapping("TimesNewRomanPS-Bold",          "TeXGyreTermes-Bold");
+        fontfileMapping("TimesNewRomanPS-BoldItalic",   "TeXGyreTermes-BoldItalic");
+        fontfileMapping("TimesNewRomanPS-Italic",        "TeXGyreTermes-Italic");
+        fontfileMapping("TimesNewRomanPSMT",                "TeXGyreTermes-Regular");
+        fontfileMapping("TimesNewRomanPSMT,Bold",          "TeXGyreTermes-Bold");
+        fontfileMapping("TimesNewRomanPSMT,BoldItalic",   "TeXGyreTermes-BoldItalic");
+        fontfileMapping("TimesNewRomanPSMT,Italic",        "TeXGyreTermes-Italic");
+        fontfileMapping("TimesNewRomanPSMT-Bold",          "TeXGyreTermes-Bold");
+        fontfileMapping("TimesNewRomanPSMT-BoldItalic",   "TeXGyreTermes-BoldItalic");
+        fontfileMapping("TimesNewRomanPSMT-Italic",        "TeXGyreTermes-Italic");
         fontfileMapping("Courier",                        "Cousine");
         fontfileMapping("Courier Bold",                  "Cousine Bold");
         fontfileMapping("Courier BoldItalic",           "Cousine Bold Italic");
@@ -679,33 +739,42 @@ public class Global
 
 		// set default font for Simplified Chinese. 简体
 		if (!setDefaultFont("GB1", "DroidSansFallback", true) &&
+			!setDefaultFont("GB1", "Noto Sans CJK SC Regular", true) &&
+			!setDefaultFont("GB1", "DroidSansChinese", true) &&
             !setDefaultFont("GB1", "Noto Sans SC Regular", true) && face_name != null)
 			setDefaultFont("GB1", face_name, true);
 		if (!setDefaultFont("GB1", "DroidSansFallback", false) &&
+			!setDefaultFont("GB1", "Noto Sans CJK SC Regular", false) &&
             !setDefaultFont("GB1", "Noto Sans SC Regular", false) && face_name != null)
 			setDefaultFont("GB1", face_name, false);
 
 		// set default font for Traditional Chinese. 繁體
 		if (!setDefaultFont("CNS1", "DroidSansFallback", true) &&
+			!setDefaultFont("GB1", "Noto Sans CJK TC Regular", true) &&
             !setDefaultFont("CNS1", "Noto Sans TC Regular", true) && face_name != null)
 			setDefaultFont("CNS1", face_name, true);
 		if (!setDefaultFont("CNS1", "DroidSansFallback", false) &&
+			!setDefaultFont("GB1", "Noto Sans CJK TC Regular", false) &&
             !setDefaultFont("CNS1", "Noto Sans TC Regular", false) && face_name != null)
 			setDefaultFont("CNS1", face_name, false);
 
 		// set default font for Japanese.
 		if (!setDefaultFont("Japan1", "DroidSansFallback", true) &&
+			!setDefaultFont("GB1", "Noto Sans CJK JP Regular", true) &&
             !setDefaultFont("Japan1", "Noto Sans JP Regular", true) && face_name != null)
 			setDefaultFont("Japan1", face_name, true);
 		if (!setDefaultFont("Japan1", "DroidSansFallback", false) &&
+			!setDefaultFont("GB1", "Noto Sans CJK JP Regular", false) &&
             !setDefaultFont("Japan1", "Noto Sans JP Regular", false) && face_name != null)
 			setDefaultFont("Japan1", face_name, false);
 
 		// set default font for Korean.
 		if (!setDefaultFont("Korea1", "DroidSansFallback", true) &&
+			!setDefaultFont("GB1", "Noto Sans CJK KR Regular", true) &&
             !setDefaultFont("Korea1", "Noto Sans KR Regular", true) && face_name != null)
 			setDefaultFont("Korea1", face_name, true);
 		if (!setDefaultFont("Korea1", "DroidSansFallback", false) &&
+			!setDefaultFont("GB1", "Noto Sans CJK KR Regular", false) &&
             !setDefaultFont("Korea1", "Noto Sans KR Regular", false) && face_name != null)
 			setDefaultFont("Korea1", face_name, false);
 
@@ -714,7 +783,7 @@ public class Global
         // but not good support france, german and some EUR languages.
         // if DroidSansFallback not exits, we using Arimo, loading from resource, which has good support EUR languages.
 		// For arabic support use setAnnotFont("Amiri-Regular")
-        if (!setAnnotFont("DroidSansFallback") &&
+        if (//!setAnnotFont("DroidSansFallback") &&
             !setAnnotFont("Arimo") && face_name != null) {
             setAnnotFont(face_name);
         }
@@ -740,7 +809,7 @@ public class Global
 		render_mode = recommandedRenderMode();// 0,1,2 0:draft 1:normal 2:best with over print support.
 		dark_mode = false;// dark mode
 		zoomLevel = 3;
-        debug_mode = false;
+		//hideAnnots(true);
 		setAnnotTransparency(annotTransparencyColor);
 	}
 

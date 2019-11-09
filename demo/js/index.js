@@ -36,11 +36,79 @@ var app = {
 
         console.log('Received Event: deviceready');
 
+		registerCallbacks();
+
         document.getElementById("activateLicense").addEventListener("click", this.activateLicense, false);
         document.getElementById("open").addEventListener("click", this.open, false);
         document.getElementById("openHttp").addEventListener("click", this.openHttp, false);
         document.getElementById("openFromAssets").addEventListener("click", this.openAssets, false);
-		
+
+		function registerCallbacks()
+        {
+            RadaeePDFPlugin.willShowReaderCallback(willShowReader);
+            RadaeePDFPlugin.didShowReaderCallback(didShowReader);
+            RadaeePDFPlugin.willCloseReaderCallback(willCloseReader);
+            RadaeePDFPlugin.didCloseReaderCallback(didCloseReader);
+            RadaeePDFPlugin.didChangePageCallback(function(message){didChangePage(message);});
+            RadaeePDFPlugin.didSearchTermCallback(function(message){didSearchTerm(message);});
+            RadaeePDFPlugin.didTapOnPageCallback(function(message){didTapOnPage(message);});
+            RadaeePDFPlugin.didTapOnAnnotationOfTypeCallback(function(message){didTapOnAnnotationOfType(message);});
+			RadaeePDFPlugin.didDoubleTapOnPageCallback(function(message){didDoubleTapOnPage(message);});
+            RadaeePDFPlugin.didLongPressOnPageCallback(function(message){didLongPressOnPage(message);});
+        }
+
+        function willShowReader()
+        {
+            console.log("--- Callback: willShowReader");
+        }
+        function didShowReader()
+        {
+            console.log("--- Callback: didShowReader");
+        }
+        function willCloseReader()
+        {
+            console.log("--- Callback: willCloseReader");
+        }
+        function didCloseReader()
+        {
+            console.log("--- Callback: didCloseReader");
+        }
+        function didChangePage(page)
+        {
+            console.log("--- Callback: didChangePage: " + page);
+        }
+        function didSearchTerm(term)
+        {
+            console.log("--- Callback: didSearchTerm: " + term);
+        }
+        function didTapOnPage(page)
+        {
+            console.log("--- Callback: didTapOnPage: " + page);
+            /*RadaeePDFPlugin.renderAnnotToFile(
+                        {
+                            page: 4,
+                            annotIndex: 3,
+                            renderPath: "/mnt/sdcard/signature.png"
+                        },
+                        function(message) {
+                             console.log("Success: " + message);
+                        },
+                        function(err){
+                            console.log("Failure: " + err);}
+                    );*/
+        }
+        function didTapOnAnnotationOfType(info)
+        {
+            console.log("--- Callback: didTapOnAnnotationOfType: " + info['type'] + " and index: " + info['index']);
+        }
+		function didDoubleTapOnPage(page)
+        {
+            console.log("--- Callback: didDoubleTapOnPage: " + page);
+        }
+        function didLongPressOnPage(page)
+        {
+            console.log("--- Callback: didLongPressOnPage: " + page);
+        }
 		/*RadaeePDFPlugin.addToBookmarks(
             {
                 pdfPath: "file:///mnt/sdcard/Download/pdf/License.pdf",
@@ -69,6 +137,17 @@ var app = {
         /*RadaeePDFPlugin.getBookmarks(
             {
                 pdfPath: "file:///mnt/sdcard/Download/pdf/License.pdf"
+            },
+            function(message) {
+                 console.log("Success: " + message);
+            },
+            function(err){
+                console.log("Failure: " + err);}
+        );*/
+
+        /*RadaeePDFPlugin.addAnnotAttachment(
+            {
+                path: "/mnt/sdcard/untitled.png"
             },
             function(message) {
                  console.log("Success: " + message);
@@ -107,7 +186,7 @@ var app = {
 
         RadaeePDFPlugin.open(
             {
-                url: "file:///mnt/sdcard/Download/Test.pdf",
+                url: "file:///mnt/sdcard/test.pdf",
                 password: "" //password if needed
             },
             function(message) {

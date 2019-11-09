@@ -7,6 +7,8 @@ import android.webkit.URLUtil;
 import android.widget.Toast;
 
 import com.radaee.pdf.Global;
+import com.radaee.pdf.Page;
+import com.radaee.reader.PDFGLViewAct;
 import com.radaee.reader.PDFViewAct;
 import com.radaee.viewlib.R;
 
@@ -23,6 +25,24 @@ public class RadaeePDFManager implements RadaeePluginCallback.PDFReaderListener 
     private int mCurrentPage = -1;
     private int mIconsBgColor = -1;
     private int mTitleBgColor = -1;
+
+    private int mLayoutType = CPU_BASED_LAYOUT;
+    public static final int GPU_BASED_LAYOUT = 0;
+    public static final int CPU_BASED_LAYOUT = 1;
+
+    public static boolean sHideSaveButton = true;
+    public static boolean sHideMoreButton = false;
+    public static boolean sHideUndoButton = false;
+    public static boolean sHideRedoButton = false;
+    public static boolean sHideShareButton = true;
+    public static boolean sHidePrintButton = true;
+    public static boolean sHideAnnotButton = false;
+    public static boolean sHideSelectButton = false;
+    public static boolean sHideSearchButton = false;
+    public static boolean sHideOutlineButton = true;
+    public static boolean sHideViewModeButton = false;
+    public static boolean sHideAddBookmarkButton = false;
+    public static boolean sHideShowBookmarksButton = false;
     private RadaeePluginCallback.PDFReaderListener mListener;
 
     public RadaeePDFManager() {
@@ -32,7 +52,7 @@ public class RadaeePDFManager implements RadaeePluginCallback.PDFReaderListener 
     public RadaeePDFManager(RadaeePluginCallback.PDFReaderListener listener) {
         Global.navigationMode = 0; //thumbnail navigation mode
         if(listener != null)
-        mListener = listener;
+            mListener = listener;
         RadaeePluginCallback.getInstance().setListener(this);
     }
 
@@ -60,10 +80,11 @@ public class RadaeePDFManager implements RadaeePluginCallback.PDFReaderListener 
      *
      * @param context the current context.
      * @param url the url can be remote (starts with http/https), or local
-     * @param password the pdf's password, if no apssword, pass empty string
+     * @param password the pdf's password, if no password, pass empty string
      */
     public void show(Context context, String url, String password) {
-        show(context, url, password, false, false, 0, null);
+        show(context, url, password, false, false, 0, null,
+                null, mLayoutType);
     }
 
     /**
@@ -71,13 +92,17 @@ public class RadaeePDFManager implements RadaeePluginCallback.PDFReaderListener 
      *
      * @param context the current context.
      * @param url the url can be remote (starts with http/https), or local
-     * @param password the pdf's password, if no apssword, pass empty string
+     * @param password the pdf's password, if no password, pass empty string
      * @param readOnlyMode if true, the document will be opened in read-only mode
      * @param automaticSave if true, the modifications will be saved automatically, else a requester to save will be shown
      * @param gotoPage if greater than 0, the reader will render directly the passed page (0-index: from 0 to Document.GetPageCount - 1)
      * @param bmpFormat bmp format, can be RGB_565 or ARGB_4444, default is ALPHA_8
+     * @param author if not empty, it will be used to set annotations' author during creation.
+     * @param layoutType determine the type of the layout to be used for rendering, (GPU or CPU) based layout, GPU_BASED_LAYOUT:0 (OpenGL), CPU_BASED_LAYOUT:1
      */
-    public void show(Context context, String url, String password, boolean readOnlyMode, boolean automaticSave, int gotoPage, String bmpFormat) {
+    public void show(Context context, String url, String password, boolean readOnlyMode, boolean automaticSave,
+                     int gotoPage, String bmpFormat, String author, int layoutType) {
+        mLayoutType = layoutType;
         if(!TextUtils.isEmpty(url)) {
             String name;
             if(URLUtil.isHttpUrl(url) || URLUtil.isHttpsUrl(url))
@@ -88,7 +113,8 @@ public class RadaeePDFManager implements RadaeePluginCallback.PDFReaderListener 
                 name = "PDFPath";
             } else
                 name = "PDFPath";
-            Intent intent = new Intent(context, PDFViewAct.class);
+            Global.sAnnotAuthor = author;
+            Intent intent = new Intent(context, mLayoutType == GPU_BASED_LAYOUT ? PDFGLViewAct.class : PDFViewAct.class);
             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             intent.putExtra( name, url);
             intent.putExtra( "PDFPswd", password);
@@ -106,7 +132,7 @@ public class RadaeePDFManager implements RadaeePluginCallback.PDFReaderListener 
      *
      * @param context the current context.
      * @param path the asset name/path
-     * @param password the pdf's password, if no apssword, pass empty string
+     * @param password the pdf's password, if no password, pass empty string
      */
     public void openFromAssets(Context context, String path, String password) {
         openFromAssets(context, path, password, null);
@@ -117,15 +143,16 @@ public class RadaeePDFManager implements RadaeePluginCallback.PDFReaderListener 
      *
      * @param context the current context.
      * @param path the asset name/path
-     * @param password the pdf's password, if no apssword, pass empty string
+     * @param password the pdf's password, if no password, pass empty string
      * @param bmpFormat bmp format, can be RGB_565 or ARGB_4444, default is ALPHA_8
      */
     public void openFromAssets(Context context, String path, String password, String bmpFormat) {
-        Intent intent = new Intent(context, PDFViewAct.class);
+        Intent intent = new Intent(context, mLayoutType == GPU_BASED_LAYOUT ? PDFGLViewAct.class : PDFViewAct.class);
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         intent.putExtra( "PDFAsset", path);
         intent.putExtra( "PDFPswd", password);
         intent.putExtra( "BMPFormat", bmpFormat);
+
         context.startActivity(intent);
     }
 
@@ -134,13 +161,16 @@ public class RadaeePDFManager implements RadaeePluginCallback.PDFReaderListener 
      *
      * @param context the current context.
      * @param path the pdf file path
-     * @param password the pdf's password, if no apssword, pass empty string
+     * @param password the pdf's password, if no password, pass empty string
+     * @param layoutType determine the type of the layout to be used for rendering, (GPU or CPU) based layout, GPU_BASED_LAYOUT:0 (OpenGL), CPU_BASED_LAYOUT:1
      */
-    public void openFromPath(Context context, String path, String password) {
-        Intent intent = new Intent(context, PDFViewAct.class);
+    public void openFromPath(Context context, String path, String password, int layoutType) {
+        mLayoutType = layoutType;
+        Intent intent = new Intent(context, mLayoutType == GPU_BASED_LAYOUT ? PDFGLViewAct.class : PDFViewAct.class);
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         intent.putExtra( "PDFPath", path);
         intent.putExtra( "PDFPswd", password);
+
         context.startActivity(intent);
     }
 
@@ -185,6 +215,16 @@ public class RadaeePDFManager implements RadaeePluginCallback.PDFReaderListener 
     }
 
     /**
+     * Sets the debug mode in Global
+     * Should be called before show, open methods
+     *
+     * @param debugMode if true you will see (available memory debug message)
+     */
+    public void setDebugMode(boolean debugMode) {
+        Global.debug_mode = debugMode;
+    }
+
+    /**
      * Sets if the first page should be rendered as cover or dual
      * Should be called before show, open methods
      *
@@ -193,6 +233,14 @@ public class RadaeePDFManager implements RadaeePluginCallback.PDFReaderListener 
     public void setFirstPageCover(boolean firstPageCover) {
         if(!firstPageCover)
             mViewMode = 4;
+    }
+
+    /**
+     * determine the type of the layout to be used for rendering, (GPU or CPU) based layout
+     * @param layoutType GPU_BASED_LAYOUT:0 (OpenGL), CPU_BASED_LAYOUT:1
+     */
+    public void setLayoutType(int layoutType) {
+        mLayoutType = layoutType;
     }
 
     /**
@@ -316,7 +364,7 @@ public class RadaeePDFManager implements RadaeePluginCallback.PDFReaderListener 
      * Adds the given page to the bookmarks.
      *
      * @param mContext context object
-     * @param filePath the orignal pdf file
+     * @param filePath the original pdf file
      * @param page 0 based page no.
      * @param bookmarkLabel label of Bookmark (can be empty string)
      * @return a string that indicates the result
@@ -369,11 +417,46 @@ public class RadaeePDFManager implements RadaeePluginCallback.PDFReaderListener 
         return BookmarkHandler.getBookmarksAsJson(filePath);
     }
 
+    /**
+     * add a file as an attachment.<br/>
+     * this can be invoked after ObjsStart or Render or RenderToBmp.<br/>
+     * this method require professional or premium license.
+     * @param attachmentPath absolute path name to the file.
+     * @return true or false.<br/>
+     */
+    public boolean addAnnotAttachment(String attachmentPath) {
+        return RadaeePluginCallback.getInstance().onAddAnnotAttachment(attachmentPath);
+    }
+
+    /**
+     * Render annot to a bitmap, and save it to the given path
+     * @param page the page number, 0-index (from 0 to Document.GetPageCount - 1)
+     * @param annotIndex annotation index
+     * @param renderPath the directory path in which the annotation will be saved (ex:/mnt/sdcard/bitmap.png)
+     *                      (in case of sdcard make sure the WRITE_EXTERNAL_STORAGE permission is granted)
+     * @param bitmapWidth the desired width of the result bitmap, 0 in case of using original width
+     * @param bitmapHeight the desired height of the result bitmap, 0 in case of using original height
+     */
+    public String renderAnnotToFile(int page, int annotIndex, String renderPath, int bitmapWidth, int bitmapHeight) {
+        return RadaeePluginCallback.getInstance().renderAnnotToFile(page, annotIndex, renderPath, bitmapWidth, bitmapHeight);
+    }
+
+    public boolean flatAnnotAtPage(int page) {
+        return RadaeePluginCallback.getInstance().flatAnnotAtPage(page);
+    }
+
+    public boolean flatAnnots() {
+        return RadaeePluginCallback.getInstance().flatAnnots();
+    }
+
+    public boolean saveDocumentToPath(String path) {
+        return RadaeePluginCallback.getInstance().saveDocumentToPath(path);
+    }
+
     @Override
     public void willShowReader() {
         Global.def_view = mViewMode;
-        if(mListener != null)
-            mListener.willShowReader();
+        if(mListener != null) mListener.willShowReader();
     }
 
     @Override
@@ -387,26 +470,42 @@ public class RadaeePDFManager implements RadaeePluginCallback.PDFReaderListener 
 
     @Override
     public void willCloseReader() {
-        if(mListener != null)
-            mListener.willCloseReader();
+        if(mListener != null) mListener.willCloseReader();
     }
 
     @Override
     public void didCloseReader() {
-        if(mListener != null)
-            mListener.didCloseReader();
+        if(mListener != null) mListener.didCloseReader();
     }
 
     @Override
     public void didChangePage(int pageno) {
         mCurrentPage = pageno;
-        if(mListener != null)
-            mListener.didChangePage(pageno);
+        if(mListener != null) mListener.didChangePage(pageno);
     }
 
     @Override
     public void didSearchTerm(String query, boolean found) {
-        if(mListener != null)
-            mListener.didSearchTerm(query, found);
+        if(mListener != null) mListener.didSearchTerm(query, found);
+    }
+
+    @Override
+    public void onBlankTapped(int pageno) {
+        if(mListener != null) mListener.onBlankTapped(pageno);
+    }
+
+    @Override
+    public void onAnnotTapped(Page.Annotation annot) {
+        if(mListener != null) mListener.onAnnotTapped(annot);
+    }
+
+    @Override
+    public void onDoubleTapped(int pageno, float x, float y) {
+        if(mListener != null) mListener.onDoubleTapped(pageno, x, y);
+    }
+
+    @Override
+    public void onLongPressed(int pageno, float x, float y) {
+        if(mListener != null) mListener.onLongPressed(pageno, x, y);
     }
 }

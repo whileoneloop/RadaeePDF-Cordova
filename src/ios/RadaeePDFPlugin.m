@@ -7,8 +7,9 @@
 //
 
 #import "RadaeePDFPlugin.h"
-#import "RDPDFViewController.h"
+#import "RDLoPDFViewController.h"
 #import "PDFHttpStream.h"
+#import "RDFormManager.h"
 
 #pragma mark - Synthesize
 
@@ -38,6 +39,7 @@
     highlightColor = (int)[[NSUserDefaults standardUserDefaults] integerForKey:@"HighlightColor"];
     ovalColor = (int)[[NSUserDefaults standardUserDefaults] integerForKey:@"OvalColor"];
     selColor = (int)[[NSUserDefaults standardUserDefaults] integerForKey:@"SelColor"];
+    arrowColor = (int)[[NSUserDefaults standardUserDefaults] integerForKey:@"ArrowColor"];
 }
 
 #pragma mark - Plugin API
@@ -49,6 +51,8 @@
     // Get user parameters
     NSDictionary *params = (NSDictionary*) [cdv_command argumentAtIndex:0];
     url = [params objectForKey:@"url"];
+    GLOBAL.g_author = ([params objectForKey:@"author"]) ? [params objectForKey:@"author"] : @"";
+    
     if([url hasPrefix:@"http://"] || [url hasPrefix:@"https://"]){
         
         NSString *cacheFile = [[NSTemporaryDirectory() stringByAppendingString:@""] stringByAppendingString:@"cacheFile.pdf"];
@@ -63,6 +67,7 @@
         NSLog(@"%d", result);
         if(result != err_ok && result != err_open){
             [self pdfChargeDidFailWithError:@"Error open pdf" andCode:(NSInteger) result];
+            return;
         }
         
         [self showReader];
@@ -93,9 +98,10 @@
     // Get user parameters
     NSDictionary *params = (NSDictionary*) [cdv_command argumentAtIndex:0];
     url = [params objectForKey:@"url"];
+    GLOBAL.g_author = ([params objectForKey:@"author"]) ? [params objectForKey:@"author"] : @"";
     
     NSString *filePath = [[NSBundle mainBundle] pathForResource:url ofType:nil];
-
+    
     [self openPdf:filePath atPage:[[params objectForKey:@"gotoPage"] intValue] withPassword:[params objectForKey:@"password"] readOnly:[[params objectForKey:@"readOnlyMode"] boolValue] autoSave:[[params objectForKey:@"automaticSave"] boolValue]];
 }
 
@@ -104,6 +110,7 @@
     // Get user parameters
     NSDictionary *params = (NSDictionary*) [cdv_command argumentAtIndex:0];
     url = [params objectForKey:@"url"];
+    GLOBAL.g_author = ([params objectForKey:@"author"]) ? [params objectForKey:@"author"] : @"";
     
     NSString *filePath = url;
     
@@ -124,11 +131,12 @@
     
     [self readerInit];
     
-    int result = [m_pdf PDFOpen:filePath :password atPage:page readOnly:readOnly autoSave:autoSave];
+    int result = [m_pdf PDFOpen:filePath :password atPage:page readOnly:readOnly autoSave:autoSave author:@""];
     
     NSLog(@"%d", result);
     if(result != err_ok && result != err_open){
         [self pdfChargeDidFailWithError:@"Error open pdf" andCode:(NSInteger) result];
+        return;
     }
     
     [self showReader];
@@ -151,7 +159,7 @@
     
     [[NSUserDefaults standardUserDefaults] synchronize];
     
-    APP_Init();
+    [RDVGlobal Init];
     
     [self activateLicenseResult:[[NSUserDefaults standardUserDefaults] boolForKey:@"actIsActive"]];
 }
@@ -166,19 +174,19 @@
         
         switch ([[NSUserDefaults standardUserDefaults] integerForKey:@"fileStat"]) {
             case 0:
-            message = @"File has not been modified.";
-            break;
-            
+                message = @"File has not been modified.";
+                break;
+                
             case 1:
-            message = @"File has been modified but not saved.";
-            break;
-            
+                message = @"File has been modified but not saved.";
+                break;
+                
             case 2:
-            message = @"File has been modified and saved.";
-            break;
-            
+                message = @"File has been modified and saved.";
+                break;
+                
             default:
-            break;
+                break;
         }
         
         [self cdvOkWithMessage:message];
@@ -315,7 +323,7 @@
 - (void)setImmersive:(CDVInvokedUrlCommand *)command
 {
     self.cdv_command = command;
- 
+    
     NSDictionary *params = (NSDictionary*) [cdv_command argumentAtIndex:0];
     
     isImmersive = [[params objectForKey:@"immersive"] boolValue];
@@ -329,16 +337,16 @@
 {
     if( m_pdf == nil )
     {
-        m_pdf = [[RDPDFViewController alloc] initWithNibName:@"RDPDFViewController" bundle:nil];
+        m_pdf = [[RDLoPDFViewController alloc] init];
     }
     
     [m_pdf setDelegate:self];
     
-    [self setPagingEnabled:YES];
+    [self setPagingEnabled:NO];
     [self setDoublePageEnabled:YES];
     
     [m_pdf setFirstPageCover:firstPageCover];
-    [m_pdf setDoubleTapZoomMode:doubleTapZoomMode];
+    [m_pdf setDoubleTapZoomMode:2];
     [m_pdf setImmersive:NO];
     
     [m_pdf setViewModeImage:[UIImage imageNamed:@"btn_view.png"]];
@@ -349,6 +357,9 @@
     [m_pdf setOutlineImage:[UIImage imageNamed:@"btn_outline.png"]];
     [m_pdf setPrintImage:[UIImage imageNamed:@"btn_print.png"]];
     [m_pdf setGridImage:[UIImage imageNamed:@"btn_grid.png"]];
+    [m_pdf setUndoImage:[UIImage imageNamed:@"btn_undo.png"]];
+    [m_pdf setRedoImage:[UIImage imageNamed:@"btn_redo.png"]];
+    [m_pdf setMoreImage:[UIImage imageNamed:@"btn_more.png"]];
     
     [m_pdf setRemoveImage:[UIImage imageNamed:@"annot_remove.png"]];
     
@@ -363,26 +374,24 @@
     [m_pdf setHideGridImage:YES];
     
     if (disableToolbar) {
-        [m_pdf setHideLineImage:YES];
-        [m_pdf setHideRectImage:YES];
         [m_pdf setHideSearchImage:YES];
-        [m_pdf setHideEllipseImage:YES];
-        [m_pdf setHideBookmarkImage:YES];
-        [m_pdf setHideViewModeImage:YES];
-        [m_pdf setHideBookmarkListImage:YES];
+        [m_pdf setHideDrawImage:YES];
+        [m_pdf setHideSelImage:YES];
+        [m_pdf setHideUndoImage:YES];
+        [m_pdf setHideRedoImage:YES];
+        [m_pdf setHideMoreImage:YES];
     } else {
-        [m_pdf setHideLineImage:NO];
-        [m_pdf setHideRectImage:NO];
-        [m_pdf setHidePrintImage:NO];
-        [m_pdf setHideEllipseImage:NO];
-        [m_pdf setHideBookmarkImage:NO];
-        [m_pdf setHideViewModeImage:NO];
-        [m_pdf setHideBookmarkListImage:NO];
+        [m_pdf setHideSearchImage:NO];
+        [m_pdf setHideDrawImage:NO];
+        [m_pdf setHideSelImage:NO];
+        [m_pdf setHideUndoImage:NO];
+        [m_pdf setHideRedoImage:NO];
+        [m_pdf setHideMoreImage:NO];
     }
     
     // always hide these images
-    [m_pdf setHidePrintImage:YES];
-    [m_pdf setHideOutlineImage:YES];
+    //[m_pdf setHidePrintImage:YES];
+    //[m_pdf setHideOutlineImage:YES];
     
     /*
      SetColor, Available features
@@ -394,6 +403,7 @@
      4: highlightColor
      5: ovalColor
      6: selColor
+     7: arrowColor
      
      */
     
@@ -404,6 +414,7 @@
     [self setColor:0xFFFFFF00 forFeature:4];
     [self setColor:0xFF000000 forFeature:5];
     [self setColor:0x400000C0 forFeature:6];
+    [self setColor:0xFF000000 forFeature:7];
     
     [self loadSettingsWithDefaults];
 }
@@ -415,11 +426,11 @@
     //toggle thumbnail/seekbar
     if (bottomBar < 1){
         [m_pdf setThumbHeight:(thumbHeight > 0) ? thumbHeight : 50];
-        [m_pdf PDFThumbNailinit:1];
+        //[m_pdf PDFThumbNailinit:1];
         [m_pdf setThumbnailBGColor:thumbBackgroundColor];
     }
-    else
-        [m_pdf PDFSeekBarInit:1];
+    //else
+    //[m_pdf PDFSeekBarInit:1];
     
     [m_pdf setReaderBGColor:readerBackgroundColor];
     
@@ -434,14 +445,18 @@
     
     if (titleBackgroundColor != 0) {
         navController.navigationBar.barTintColor = UIColorFromRGB(titleBackgroundColor);
+    } else {
+        navController.navigationBar.barTintColor = [UIColor blackColor];
     }
     
     if (iconsBackgroundColor != 0) {
         navController.navigationBar.tintColor = UIColorFromRGB(iconsBackgroundColor);
-        //navController.navigationBar.tintColor = [UIColor greenColor];
+    } else {
+        navController.navigationBar.tintColor = [UIColor orangeColor];
     }
     
     [navController.navigationBar setTranslucent:NO];
+    navController.modalPresentationStyle = UIModalPresentationFullScreen;
     
     [self.viewController presentViewController:navController animated:YES completion:nil];
 }
@@ -500,6 +515,99 @@
     }
 }
 
+- (void)addAnnotAttachment:(CDVInvokedUrlCommand *)command
+{
+    self.cdv_command = command;
+    
+    NSDictionary *params = (NSDictionary*) [cdv_command argumentAtIndex:0];
+    
+    NSString *path = [params objectForKey:@"path"];
+    
+    PDFDoc *doc = [m_pdf getDoc];
+    
+    if (m_pdf == nil || doc == nil) {
+        [self cdvErrorWithMessage:@"Error in pdf instance"];
+        return;
+    }
+    
+    if([m_pdf addAttachmentFromPath:path])
+    {
+        [self cdvOkWithMessage:@"Success"];
+    } else {
+        [self cdvErrorWithMessage:@"Failure"];
+    }
+}
+
+- (void)renderAnnotToFile:(CDVInvokedUrlCommand *)command
+{
+    self.cdv_command = command;
+    
+    NSDictionary *params = (NSDictionary*) [cdv_command argumentAtIndex:0];
+    
+    int pageno = [[params objectForKey:@"page"] intValue];
+    int index = [[params objectForKey:@"annotIndex"] intValue];
+    NSString *path = [params objectForKey:@"renderPath"];
+    int width = [[params objectForKey:@"width"] intValue];
+    int height = [[params objectForKey:@"height"] intValue];
+    
+    PDFDoc *doc = [m_pdf getDoc];
+    
+    if (m_pdf == nil || doc == nil) {
+        [self cdvErrorWithMessage:@"Error in pdf instance"];
+        return;
+    }
+    
+    if([m_pdf saveImageFromAnnotAtIndex:index atPage:pageno savePath:path size:CGSizeMake(width, height)])
+    {
+        [self cdvOkWithMessage:@"Success"];
+    } else {
+        [self cdvErrorWithMessage:@"Failure"];
+    }
+}
+
+- (void)flatAnnots:(CDVInvokedUrlCommand *)command
+{
+    self.cdv_command = command;
+    
+    if([m_pdf flatAnnots])
+    {
+        [self cdvOkWithMessage:@"Success"];
+    } else {
+        [self cdvErrorWithMessage:@"Failure"];
+    }
+}
+- (void)flatAnnotAtPage:(CDVInvokedUrlCommand *)command
+{
+    self.cdv_command = command;
+    
+    NSDictionary *params = (NSDictionary*) [cdv_command argumentAtIndex:0];
+    int pageno = [[params objectForKey:@"page"] intValue];
+    
+    if([m_pdf flatAnnotAtPage:pageno doc:nil])
+    {
+        [self cdvOkWithMessage:@"Success"];
+    } else {
+        [self cdvErrorWithMessage:@"Failure"];
+    }
+    
+}
+- (void)saveDocumentToPath:(CDVInvokedUrlCommand *)command
+{
+    self.cdv_command = command;
+    
+    NSDictionary *params = (NSDictionary*) [cdv_command argumentAtIndex:0];
+    
+    NSString *path = [params objectForKey:@"path"];
+    
+    if([m_pdf saveDocumentToPath:path])
+    {
+        [self cdvOkWithMessage:@"Success"];
+    } else {
+        [self cdvErrorWithMessage:@"Failure"];
+    }
+    
+}
+
 #pragma mark - Settings
 
 - (void)toggleThumbSeekBar:(int)mode
@@ -509,12 +617,12 @@
 
 - (void)setPagingEnabled:(BOOL)enabled
 {
-    g_paging_enabled = enabled;
+    GLOBAL.g_paging_enabled = enabled;
 }
 
 - (void)setDoublePageEnabled:(BOOL)enabled
 {
-    g_double_page_enabled = enabled;
+    GLOBAL.g_double_page_enabled = enabled;
 }
 
 - (void)setReaderViewMode:(CDVInvokedUrlCommand *)command
@@ -525,9 +633,7 @@
     
     int mode = [[params objectForKey:@"mode"] intValue];
     
-    if (mode > 0 && mode < 5) {
-        _viewMode = mode;
-    }
+    _viewMode = mode;
 }
 
 - (void)setToolbarEnabled:(CDVInvokedUrlCommand *)command
@@ -572,6 +678,10 @@
             selColor = color;
             break;
             
+        case 7:
+            arrowColor = color;
+            break;
+            
         default:
             break;
     }
@@ -596,17 +706,19 @@
     [[NSUserDefaults standardUserDefaults] setInteger:ovalColor forKey:@"OvalColor"];
     [[NSUserDefaults standardUserDefaults] setInteger:_viewMode forKey:@"DefView"];
     [[NSUserDefaults standardUserDefaults] setInteger:selColor forKey:@"SelColor"];
+    [[NSUserDefaults standardUserDefaults] setInteger:arrowColor forKey:@"ArrowColor"];
     
-    g_def_view = (int)[[NSUserDefaults standardUserDefaults] integerForKey:@"DefView"];
-    g_MatchWholeWord = (int)[[NSUserDefaults standardUserDefaults] integerForKey:@"MatchWholeWord"];
+    GLOBAL.g_render_mode = (int)[[NSUserDefaults standardUserDefaults] integerForKey:@"DefView"];
+    GLOBAL.g_match_whole_word = (int)[[NSUserDefaults standardUserDefaults] integerForKey:@"MatchWholeWord"];
     
-    g_rect_color = rectColor;
-    g_ink_color = inkColor;
-    g_sel_color = selColor;
-    g_oval_color = ovalColor;
-    annotHighlightColor = highlightColor;
-    annotUnderlineColor = underlineColor;
-    annotStrikeoutColor = strikeoutColor;
+    GLOBAL.g_rect_color = rectColor;
+    GLOBAL.g_ink_color = inkColor;
+    GLOBAL.g_sel_color = selColor;
+    GLOBAL.g_oval_color = ovalColor;
+    GLOBAL.g_line_color = arrowColor;
+    GLOBAL.g_annot_highlight_clr = highlightColor;
+    GLOBAL.g_annot_underline_clr = underlineColor;
+    GLOBAL.g_annot_strikeout_clr = strikeoutColor;
     //annotSquigglyColor = 0xFF00FF00;
     
     [[NSUserDefaults standardUserDefaults] synchronize];
@@ -620,7 +732,7 @@
     
     NSDictionary *params = (NSDictionary*) [cdv_command argumentAtIndex:0];
     
-    NSString *path = [[NSBundle mainBundle] pathForResource:@"test" ofType:@"pdf"];  //[params objectForKey:@"pdfPath"];
+    NSString *path = [params objectForKey:@"pdfPath"];
     
     [self cdvOkWithMessage:[RadaeePDFPlugin addToBookmarks:path page:[[params objectForKey:@"page"] intValue] label:[params objectForKey:@"label"]]];
 }
@@ -631,7 +743,7 @@
     
     NSDictionary *params = (NSDictionary*) [cdv_command argumentAtIndex:0];
     
-    NSString *path = [[NSBundle mainBundle] pathForResource:@"test" ofType:@"pdf"]; //[params objectForKey:@"pdfPath"];
+    NSString *path = [params objectForKey:@"pdfPath"];
     
     [RadaeePDFPlugin removeBookmark:[[params objectForKey:@"page"] intValue] pdfPath:path];
 }
@@ -642,14 +754,63 @@
     
     NSDictionary *params = (NSDictionary*) [cdv_command argumentAtIndex:0];
     
-    NSString *path = [[NSBundle mainBundle] pathForResource:@"test" ofType:@"pdf"]; //[params objectForKey:@"pdfPath"];
+    NSString *path = [params objectForKey:@"pdfPath"];
     
     [self cdvOkWithMessage:[RadaeePDFPlugin getBookmarks:path]];
 }
 
+#pragma mark - Callbacks
+
+- (void)willShowReaderCallback:(CDVInvokedUrlCommand *)command
+{
+    self.cdv_willShowReader = command;
+}
+- (void)didShowReaderCallback:(CDVInvokedUrlCommand *)command
+{
+    self.cdv_didShowReader = command;
+}
+- (void)willCloseReaderCallback:(CDVInvokedUrlCommand *)command
+{
+    self.cdv_willCloseReader = command;
+}
+- (void)didCloseReaderCallback:(CDVInvokedUrlCommand *)command
+{
+    self.cdv_didCloseReader = command;
+}
+- (void)didChangePageCallback:(CDVInvokedUrlCommand *)command
+{
+    self.cdv_didChangePage = command;
+}
+- (void)didSearchTermCallback:(CDVInvokedUrlCommand *)command
+{
+    self.cdv_didSearchTerm = command;
+}
+- (void)didTapOnPageCallback:(CDVInvokedUrlCommand *)command
+{
+    self.cdv_didTapOnPage = command;
+}
+- (void)didDoubleTapOnPageCallback:(CDVInvokedUrlCommand *)command
+{
+    self.cdv_didDoubleTapOnPage = command;
+}
+
+- (void)didLongPressOnPageCallback:(CDVInvokedUrlCommand *)command
+{
+    self.cdv_didLongPressOnPage = command;
+}
+- (void)didTapOnAnnotationOfTypeCallback:(CDVInvokedUrlCommand *)command
+{
+    self.cdv_didTapOnAnnotationOfType = command;
+}
+
+- (void)onAnnotExportedCallback:(CDVInvokedUrlCommand *)command
+{
+    self.cdv_onAnnotExported = command;
+}
 
 + (NSString *)addToBookmarks:(NSString *)pdfPath page:(int)page label:(NSString *)label
 {
+    pdfPath = [pdfPath stringByReplacingOccurrencesOfString:@"file://" withString:@""];
     NSString *tempName = [[pdfPath lastPathComponent] stringByDeletingPathExtension];
     NSString *tempFile = [tempName stringByAppendingFormat:@"%d%@",page,@".bookmark"];
     
@@ -681,6 +842,7 @@
 
 + (void)removeBookmark:(int)page pdfPath:(NSString *)pdfPath
 {
+    pdfPath = [pdfPath stringByReplacingOccurrencesOfString:@"file://" withString:@""];
     NSString *item = [[pdfPath lastPathComponent] stringByDeletingPathExtension];
     NSString *folder = [pdfPath stringByDeletingLastPathComponent];
     NSString *bookmarkFile = [folder stringByAppendingPathComponent:[NSString stringWithFormat:@"%@%i.bookmark", item, page]];
@@ -692,6 +854,7 @@
 
 + (NSString *)getBookmarks:(NSString *)pdfPath
 {
+    pdfPath = [pdfPath stringByReplacingOccurrencesOfString:@"file://" withString:@""];
     if ([[NSFileManager defaultManager] fileExistsAtPath:pdfPath]) {
         NSMutableArray *bookmarks = [RadaeePDFPlugin loadBookmarkForPdf:pdfPath withPath:NO];
         NSData *jsonData = [NSJSONSerialization dataWithJSONObject:bookmarks options:NSJSONWritingPrettyPrinted error:nil];
@@ -785,9 +948,25 @@
                                messageAsDictionary:dict]];
 }
 
+- (void)cdvSendDictCallback:(NSDictionary *)message orCommand:(CDVInvokedUrlCommand *)command
+{
+    CDVPluginResult *res = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDictionary:message];
+    [res setKeepCallbackAsBool:YES];
+    [self.commandDelegate sendPluginResult:res callbackId:[command callbackId]];
+}
+
+- (void)cdvSendCallback:(NSString *)message orCommand:(CDVInvokedUrlCommand *)command
+{
+    CDVPluginResult *res = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:message];
+    [res setKeepCallbackAsBool:YES];
+    [self.commandDelegate sendPluginResult:res callbackId:[command callbackId]];
+}
+
 - (void)cdvOkWithMessage:(NSString *)message
 {
-    [self.commandDelegate sendPluginResult:[CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:message] callbackId:[self.cdv_command callbackId]];
+    CDVPluginResult *res = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:message];
+    [res setKeepCallback:0];
+    [self.commandDelegate sendPluginResult:res callbackId:[self.cdv_command callbackId]];
 }
 
 - (void)cdvErrorWithMessage:(NSString *)errorMessage
@@ -847,62 +1026,173 @@
     }
 }
 
+#pragma mark - FTS Methods
+#ifdef FTS_ENABLED
+- (void)FTS_SetIndexDB:(CDVInvokedUrlCommand*)command
+{
+    self.cdv_command = command;
+    NSDictionary *params = (NSDictionary*) [cdv_command argumentAtIndex:0];
+    
+    [[FTSManager sharedInstance] FTS_SetIndexDB:[params objectForKey:@"dbPath"]];
+    [self cdvOkWithMessage:@"Success"];
+}
+- (void)FTS_AddIndex:(CDVInvokedUrlCommand*)command
+{
+    self.cdv_command = command;
+    NSDictionary *params = (NSDictionary*) [cdv_command argumentAtIndex:0];
+    
+    if([[FTSManager sharedInstance] FTS_AddIndex:[params objectForKey:@"filePath"] password:[params objectForKey:@"password"]])
+        [self cdvOkWithMessage:@"Success"];
+    else
+        [self cdvErrorWithMessage:@"Failure"];
+}
+- (void)FTS_RemoveFromIndex:(CDVInvokedUrlCommand*)command
+{
+    self.cdv_command = command;
+    NSDictionary *params = (NSDictionary*) [cdv_command argumentAtIndex:0];
+    
+    [[FTSManager sharedInstance] FTS_RemoveFromIndex:[params objectForKey:@"filePath"] password:[params objectForKey:@"password"]];
+    [self cdvOkWithMessage:@"Success"];
+}
+- (void)FTS_Search:(CDVInvokedUrlCommand*)command
+{
+    self.cdv_command = command;
+    NSDictionary *params = (NSDictionary*) [cdv_command argumentAtIndex:0];
+    
+    [[FTSManager sharedInstance] FTS_Search:[params objectForKey:@"term"] filter:[params objectForKey:@"filePath"] password:[params objectForKey:@"password"] writeJSON:[params objectForKey:@"resultPath"] success:^(NSMutableArray *occurrences, BOOL didWriteFile) {
+        
+        // Return the JSON as string
+        if (!didWriteFile) {
+            NSMutableArray *jsonArray = [NSMutableArray arrayWithCapacity:occurrences.count];
+            
+            for (FTSOccurrence *occurrence in occurrences) {
+                [jsonArray addObject:[occurrence getDictionaryFormat]];
+            }
+            
+            NSString *jsonString = [[NSString alloc] initWithData:[NSJSONSerialization dataWithJSONObject:jsonArray options:NSJSONWritingPrettyPrinted error:nil] encoding:NSUTF8StringEncoding];
+            
+            [self cdvOkWithMessage:jsonString];
+        } else {
+            [self cdvOkWithMessage:@"Success"];
+        }
+    }];
+}
+- (void)SetSearchType:(CDVInvokedUrlCommand*)command
+{
+    self.cdv_command = command;
+    NSDictionary *params = (NSDictionary*) [cdv_command argumentAtIndex:0];
+    
+    [[FTSManager sharedInstance] SetSearchType:[[params objectForKey:@"type"] intValue]];
+    [self cdvOkWithMessage:@"Success"];
+}
+- (void)GetSearchType:(CDVInvokedUrlCommand *)command
+{
+    self.cdv_command = command;
+    [self cdvOkWithMessage:[NSString stringWithFormat:@"%i",[[FTSManager sharedInstance] GetSearchType]]];
+}
+#endif
 #pragma mark - Reader Delegate
 
 - (void)willShowReader
 {
-    if (_delegate) {
-        [_delegate willShowReader];
-    }
+    /*
+     if (_delegate) {
+     [_delegate willShowReader];
+     }
+     */
+    
+    [self cdvSendCallback:@"" orCommand:self.cdv_willShowReader];
 }
 
 - (void)didShowReader
 {
-    if (_delegate) {
-        [_delegate didShowReader];
-    }
+    /*
+     if (_delegate) {
+     [_delegate didShowReader];
+     }
+     */
+    
+    [self cdvSendCallback:@"" orCommand:self.cdv_didShowReader];
 }
 
 - (void)willCloseReader
 {
-    if (_delegate) {
-        [_delegate willCloseReader];
-    }
+    /*
+     if (_delegate) {
+     [_delegate willCloseReader];
+     }
+     */
+    
+    [self cdvSendCallback:@"" orCommand:self.cdv_willCloseReader];
 }
 
 - (void)didCloseReader
 {
-    if (_delegate) {
-        [_delegate didCloseReader];
-    }
+    /*
+     if (_delegate) {
+     [_delegate didCloseReader];
+     }
+     */
+    
+    [self cdvSendCallback:@"" orCommand:self.cdv_didCloseReader];
 }
 
 - (void)didChangePage:(int)page
 {
-    if (_delegate) {
-        [_delegate didChangePage:page];
-    }
+    /*
+     if (_delegate) {
+     [_delegate didChangePage:page];
+     }
+     */
+    
+    [self cdvSendCallback:[NSString stringWithFormat:@"%i", page] orCommand:self.cdv_didChangePage];
 }
 
 - (void)didSearchTerm:(NSString *)term found:(BOOL)found
 {
-    if (_delegate) {
-        [_delegate didSearchTerm:term found:found];
-    }
+    /*
+     if (_delegate) {
+     [_delegate didSearchTerm:term found:found];
+     }
+     */
+    
+    [self cdvSendCallback:term orCommand:self.cdv_didSearchTerm];
 }
 
 - (void)didTapOnPage:(int)page atPoint:(CGPoint)point
 {
-    if (_delegate) {
-        [_delegate didTapOnPage:page atPoint:point];
-    }
+    /*
+     if (_delegate) {
+     [_delegate didTapOnPage:page atPoint:point];
+     }
+     */
+    
+    [self cdvSendCallback:[NSString stringWithFormat:@"%i", page] orCommand:self.cdv_didTapOnPage];
+}
+
+- (void)didDoubleTapOnPage:(int)page atPoint:(CGPoint)point
+{
+    [self cdvSendCallback:[NSString stringWithFormat:@"%i", page] orCommand:self.cdv_didDoubleTapOnPage];
+}
+
+- (void)didLongPressOnPage:(int)page atPoint:(CGPoint)point
+{
+    [self cdvSendCallback:[NSString stringWithFormat:@"%i", page] orCommand:self.cdv_didLongPressOnPage];
 }
 
 - (void)didTapOnAnnotationOfType:(int)type atPage:(int)page atPoint:(CGPoint)point
 {
-    if (_delegate) {
-        [_delegate didTapOnAnnotationOfType:type atPage:page atPoint:point];
-    }
+    /*
+     if (_delegate) {
+     [_delegate didTapOnAnnotationOfType:type atPage:page atPoint:point];
+     }
+     */
+    [self cdvSendDictCallback:@{@"index": [NSNumber numberWithInt:page], @"type": [NSNumber numberWithInt:type]} orCommand:self.cdv_didTapOnAnnotationOfType];
+}
+
+- (void)onAnnotExported:(NSString *)path
+{
+    [self cdvSendCallback:path orCommand:self.cdv_onAnnotExported];
 }
 
 #pragma mark - Path Utils
