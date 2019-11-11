@@ -349,7 +349,7 @@
         <framework src="libc++.dylib" />
 
         <!-- Plugin sources and resources -->
-        <!-- <resource-file src="src/ios/PDFViewer/Images.xcassets" /> -->
+        <resource-file src="src/ios/PDFViewer/PluginImages.xcassets" />
 
         <!-- Radaee sources -->
         <source-file src="src/ios/RadaeePDFPlugin.m" />

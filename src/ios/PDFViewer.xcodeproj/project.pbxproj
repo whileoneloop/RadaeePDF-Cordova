@@ -391,7 +391,7 @@
 		A825B9A22283241C009BD8EB /* RDPDFReflowViewController.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = RDPDFReflowViewController.xib; sourceTree = "<group>"; };
 		A825B9A5228324F8009BD8EB /* PDFReflowView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PDFReflowView.h; sourceTree = "<group>"; };
 		A825B9A6228324F9009BD8EB /* PDFReflowView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PDFReflowView.m; sourceTree = "<group>"; };
-		A835BDA91D2BA110004B3DE1 /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Images.xcassets; sourceTree = "<group>"; };
+		A835BDA91D2BA110004B3DE1 /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = PluginImages.xcassets; sourceTree = "<group>"; };
 		A8549AAB2282C7040035A2EF /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = Base; path = Base.lproj/RDLoPDFViewController.xib; sourceTree = "<group>"; };
 		A8549AAC2282C7040035A2EF /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = Base; path = Base.lproj/RDFileTableController.xib; sourceTree = "<group>"; };
 		A8549AAD2282C75B0035A2EF /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/RDLoPDFViewController.strings; sourceTree = "<group>"; };
