@@ -15,7 +15,7 @@
 @synthesize dicData;
 @synthesize arrayData;
 
-static int  currentIndex=0;
+static int  currentIndex;
 
 - (id)initWithNibName:(NSString *)nibNameOrNil bundle:(NSBundle *)nibBundleOrNil
 {
@@ -57,7 +57,7 @@ static int  currentIndex=0;
 {
     [super viewWillAppear:animated];
     
-    GLOBAL.g_render_mode = [[NSUserDefaults standardUserDefaults] integerForKey:@"ViewMode"];
+    GLOBAL.g_render_mode = (int)[[NSUserDefaults standardUserDefaults] integerForKey:@"ViewMode"];
     currentIndex = GLOBAL.g_render_mode;
     
     [self.partitationTableView reloadData];
@@ -66,17 +66,6 @@ static int  currentIndex=0;
 }
 //END
 
-- (void)viewDidUnload
-{
-    [super viewDidUnload];
-    // Release any retained subviews of the main view.
-    // e.g. self.myOutlet = nil;
-}
-
-- (BOOL)shouldAutorotateToInterfaceOrientation:(UIInterfaceOrientation)interfaceOrientation
-{
-    return (interfaceOrientation == UIInterfaceOrientationPortrait);
-}
 -(NSInteger)numberOfSectionsInTableView:(UITableView *)tableView
 {
     return [self.arrayData count];
@@ -89,17 +78,6 @@ static int  currentIndex=0;
     return [arraySection count];
 }
 
--(UITableViewCellAccessoryType)tableView:(UITableView *)tableView accessoryTypeForRowWithIndexPath:(NSIndexPath *)indexPath
-{
-    if(indexPath.row == currentIndex)
-    {
-        return UITableViewCellAccessoryCheckmark;
-    }
-    else{
-        return UITableViewCellAccessoryNone;
-    }
-}
-
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath
 {
     [tableView deselectRowAtIndexPath:[tableView indexPathForSelectedRow]animated:YES];
@@ -110,7 +88,8 @@ static int  currentIndex=0;
     NSIndexPath *oldIndexPath = [NSIndexPath indexPathForRow:currentIndex inSection:0];
     UITableViewCell *cell =[tableView cellForRowAtIndexPath:indexPath];
     
-    GLOBAL.g_render_mode = indexPath.row;
+    GLOBAL.g_render_mode = (int)indexPath.row;
+    
     [[NSUserDefaults standardUserDefaults] setInteger:GLOBAL.g_render_mode forKey:@"ViewMode"];
     [[NSUserDefaults standardUserDefaults] synchronize];
     
@@ -133,7 +112,7 @@ static int  currentIndex=0;
     {
         oldCell.accessoryType=UITableViewCellAccessoryCheckmark;
     }
-    currentIndex = indexPath.row;
+    currentIndex = (int)indexPath.row;
     
 }
 -(UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
@@ -154,6 +133,9 @@ static int  currentIndex=0;
     }
     cell.textLabel.text = [arraySection objectAtIndex:row];
     cell.accessoryType = UITableViewCellStyleDefault;
+    if (indexPath.row == currentIndex) {
+        cell.accessoryType = UITableViewCellAccessoryCheckmark;
+    }
     return cell;
 }
 

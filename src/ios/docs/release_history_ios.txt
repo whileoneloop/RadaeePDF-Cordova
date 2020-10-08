@@ -1,4 +1,62 @@
 PDFViewer SDK for iOS - Release notes
+
+3.61
+- REMOVED all buffer limit for string value, both get/set
+- FIX thumbnail goto issue
+- FIX zoom step issue
+- Optimize pdf rendering
+- FIX text annot issue
+- FIX toolbar issue
+- FIX move annot issue
+- ENHANCED image rendering and transparency group rendering by checking drawable area.
+- ENHANCED image scaling precision
+- FIX issue with RenderToBmb in case of a specific file
+
+3.60
+- ENHANCED optimize tensor pattern rendering
+- ENHANCED optimize overprint (enabled only using render mode = 2)
+- FIX issue for 90 or 270 degrees rotated image, and with any direction flip
+- FIX rectangle color in case of empty highlight annotation
+- FIX rendering issue in case of overprint
+- Speed up tiling pattern rendering
+- FIX jpx decode issue
+- REMOVED arm64 warnings
+- ADD page curling mode
+- FIX "whole word" flag issue
+- ADD new global variables
+- ALIGN render_mode to Android
+- FIX issue caused by null object into content stream of Annotation
+- FIX curling mode memory issue
+
+3.59
+- FIX crash on page draw with high zoom level
+- FIX check box multiple selection issue for a check box group
+- FIX rendering issue related to JPX decoding
+- FIX check tail of CBC mode in AES
+- Optimize AES decoding in ARM64 CPU
+- FIX OOM issue
+- Link annotation generate same data as Acrobat does.
+- When width of a long word exceed width of textbox, it break the line.
+- FIX SIGSEV error
+- Support bitcode for ARM platform
+- EDIT GetMeta/SetMeta with no buffer limit
+- FIX import page issue
+
+3.58
+- FIX crashed issue when close the special PDF file
+- FIX issue for AddAnnotEditBox in rotated page
+
+
+3.57
+- FIX crash issue on pdf with bad encrypted data
+
+3.56
+- FIX marked content issue
+- FIX rendering issues
+- FIX memory leak issues
+- FIX markup annotation issue
+- FIX memory usage issue for a special PDF file
+
 3.55
 - iOS 13 support
 - FIX rendering issue

@@ -7,6 +7,9 @@
 //
 
 #import "PDFObjc.h"
+extern uint annotHighlightColor;
+extern uint annotUnderlineColor;
+extern uint annotStrikeoutColor;
 
 @implementation PDFSign
 @synthesize handle = m_sign;
@@ -195,17 +198,11 @@
 }
 -(NSString *)getAsciiStringVal
 {
-	const char *name = Obj_getAsciiString(m_obj);
-	if(!name) return NULL;
-	return [NSString stringWithUTF8String:name];
+	return Obj_getAsciiString(m_obj);
 }
 -(NSString *)getTextStringVal
 {
-	char *buf = (char *)malloc(65536);
-	Obj_getTextString(m_obj, buf, 65536);
-	NSString *ret = [NSString stringWithUTF8String:buf];
-	free(buf);
-	return ret;
+	return Obj_getTextString(m_obj);
 }
 -(const unsigned char *)getHexStrngVal :(int *)plen
 {
@@ -355,19 +352,19 @@
 }
 -(NSString *)label
 {
-    char label[512];
-    Document_getOutlineLabel(m_doc, m_handle, label, 511);
-    return [NSString stringWithUTF8String:label];
+    return Document_getOutlineLabel(m_doc, m_handle);
 }
+
 -(NSString *)fileLink
 {
-    return Document_getOutlineFileLink(m_doc, m_handle);
+	return Document_getOutlineFileLink(m_doc, m_handle);
 }
 
 -(NSString *)url
 {
-    return Document_getOutlineURI(m_doc, m_handle);
+	return Document_getOutlineURI(m_doc, m_handle);
 }
+
 -(bool)removeFromDoc
 {
 	return Document_removeOutline( m_doc, m_handle );
@@ -823,7 +820,7 @@
 {
 	return Page_exportAnnot(m_page, m_handle, buf, len);
 }
--(int)signField :(PDFDocForm *)appearence :(NSString *)cert_file :(NSString *)pswd :(NSString *)reason :(NSString *)location :(NSString *)contact;
+-(int)signField:(PDFDocForm *)appearence :(NSString *)cert_file :(NSString *)pswd :(NSString *)reason :(NSString *)location :(NSString *)contact
 {
 	return Page_signAnnotField(m_page, m_handle, [appearence handle], [cert_file UTF8String], [pswd UTF8String], [reason UTF8String], [location UTF8String], [contact UTF8String]);
 }
@@ -870,19 +867,11 @@
 }
 -(void)setLocked:(bool)lock
 {
-    Page_setAnnotLock( m_page, m_handle, lock );
+	Page_setAnnotLock( m_page, m_handle, lock );
 }
 -(NSString *)getName
 {
-    char *stmp = (char *)malloc(1024);
-    if(!Page_getAnnotName(m_page, m_handle, stmp, 1023))
-    {
-        free(stmp);
-        return nil;
-    }
-    NSString *ret = [NSString stringWithUTF8String:stmp];
-    free(stmp);
-    return ret;
+    return Page_getAnnotName(m_page, m_handle);
 }
 -(bool)setName:(NSString *)name
 {
@@ -1029,11 +1018,7 @@
 }
 -(NSString *)getURI
 {
-	char buf[1024];
-	int len = Page_getAnnotURI( m_page, m_handle, buf, 1023 );
-	if( len <= 0 ) return NULL;
-    buf[len] = 0;
-	return [NSString stringWithUTF8String:buf];
+	return Page_getAnnotURI( m_page, m_handle);
 }
 -(NSString *)getJS
 {
@@ -1047,35 +1032,19 @@
 
 -(NSString *)get3D
 {
-	char buf[1024];
-	int len = Page_getAnnot3D( m_page, m_handle, buf, 1023 );
-	if( len <= 0 ) return NULL;
-    buf[len] = 0;
-	return [NSString stringWithUTF8String:buf];
+	return Page_getAnnot3D( m_page, m_handle );
 }
 -(NSString *)getMovie
 {
-	char buf[1024];
-	int len = Page_getAnnotMovie( m_page, m_handle, buf, 1023 );
-	if( len <= 0 ) return NULL;
-    buf[len] = 0;
-	return [NSString stringWithUTF8String:buf];
+	return Page_getAnnotMovie( m_page, m_handle );
 }
 -(NSString *)getSound
 {
-	char buf[1024];
-	int len = Page_getAnnotSound( m_page, m_handle, buf, 1023 );
-	if( len <= 0 ) return NULL;
-    buf[len] = 0;
-	return [NSString stringWithUTF8String:buf];
+	return Page_getAnnotSound( m_page, m_handle );
 }
 -(NSString *)getAttachment
 {
-	char buf[1024];
-	int len = Page_getAnnotAttachment( m_page, m_handle, buf, 1023 );
-	if( len <= 0 ) return NULL;
-    buf[len] = 0;
-	return [NSString stringWithUTF8String:buf];
+	return Page_getAnnotAttachment( m_page, m_handle );
 }
 -(bool)get3DData:(NSString *)save_file
 {
@@ -1151,24 +1120,15 @@
 }
 -(NSString *)getPopupSubject
 {
-	char buf[1024];
-	if( !Page_getAnnotPopupSubject( m_page, m_handle, buf, 1023 ) )
-		return NULL;
-	return [NSString stringWithUTF8String:buf];
+	return Page_getAnnotPopupSubject( m_page, m_handle );
 }
 -(NSString *)getPopupText
 {
-	char buf[1024];
-	if( !Page_getAnnotPopupText( m_page, m_handle, buf, 1023 ) )
-		return NULL;
-	return [NSString stringWithUTF8String:buf];
+	return Page_getAnnotPopupText( m_page, m_handle );
 }
 -(NSString *)getPopupLabel
 {
-	char buf[1024];
-	if( !Page_getAnnotPopupLabel( m_page, m_handle, buf, 1023 ) )
-		return NULL;
-	return [NSString stringWithUTF8String:buf];
+	return Page_getAnnotPopupLabel( m_page, m_handle );
 }
 -(bool)setPopupOpen :(bool)open
 {
@@ -1204,18 +1164,12 @@
 }
 -(NSString *)getEditText
 {
-	char buf[1024];
-	if( !Page_getAnnotEditText( m_page, m_handle, buf, 1023 ) )
-		return NULL;
-	return [NSString stringWithUTF8String:buf];
+	return Page_getAnnotEditText( m_page, m_handle );
 }
 
 -(NSString *)getFieldJS:(int)idx
 {
-	char buf[1024];
-	if( !Page_getAnnotFieldJS( m_page, m_handle, idx, buf, 1023 ) )
-		return NULL;
-	return [NSString stringWithUTF8String:buf];
+	return Page_getAnnotFieldJS( m_page, m_handle, idx );
 }
 
 -(bool)setEditText:(NSString *)val
@@ -1243,17 +1197,11 @@
 }
 -(NSString *)getComboItem:(int)index
 {
-	char buf[1024];
-	if( !Page_getAnnotComboItem( m_page, m_handle, index, buf, 1023 ) )
-		return NULL;
-	return [NSString stringWithUTF8String:buf];
+	return Page_getAnnotComboItem( m_page, m_handle, index );
 }
 -(NSString *)getComboItemVal:(int)index
 {
-    char buf[1024];
-    if( !Page_getAnnotComboItemVal( m_page, m_handle, index, buf, 1023 ) )
-        return NULL;
-    return [NSString stringWithUTF8String:buf];
+	return Page_getAnnotComboItemVal( m_page, m_handle, index );
 }
 -(int)getComboSel
 {
@@ -1273,17 +1221,11 @@
 }
 -(NSString *)getListItem:(int)index
 {
-	char buf[1024];
-	if( !Page_getAnnotListItem( m_page, m_handle, index, buf, 1023 ) )
-		return NULL;
-	return [NSString stringWithUTF8String:buf];
+	return Page_getAnnotListItem( m_page, m_handle, index );
 }
 -(NSString *)getListItemVal:(int)index
 {
-    char buf[1024];
-    if( !Page_getAnnotListItemVal( m_page, m_handle, index, buf, 1023 ) )
-        return NULL;
-    return [NSString stringWithUTF8String:buf];
+	return Page_getAnnotListItemVal( m_page, m_handle, index );
 }
 -(int)getListSels:(int *)sels :(int)sels_max
 {
@@ -1315,10 +1257,7 @@
 }
 -(NSString *)getSubmitTarget
 {
-	char buf[1024];
-	if( !Page_getAnnotSubmitTarget( m_page, m_handle, buf, 1023 ) )
-		return NULL;
-	return [NSString stringWithUTF8String:buf];
+    return Page_getAnnotSubmitTarget( m_page, m_handle );
 }
 -(NSString *)getSubmitPara
 {
@@ -1461,12 +1400,7 @@
 }
 -(NSString *)objsString:(int)from :(int)to
 {
-    if( to <= from ) return NULL;
-    char *buf = (char *)malloc(4 * (to - from) + 8);
-    Page_objsGetString(m_page, from, to, buf, 4 * (to - from) + 4);
-    NSString *str = [NSString stringWithUTF8String:buf];
-    free(buf);
-    return str;
+    return Page_objsGetString(m_page, from, to);
 }
 -(int)objsAlignWord:(int)index :(int)dir
 {
@@ -1609,11 +1543,11 @@
 }
 -(bool)addContent:(PDFPageContent *)content :(bool)flush
 {
-    return Page_addContent( m_page, content.handle, flush );
+	return Page_addContent( m_page, content.handle, flush );
 }
 - (bool)addAnnotEditText:(const PDF_RECT *)rect
 {
-    return Page_addAnnotEditbox2(m_page, rect, 0xFF000000, 1, 0xFFFFFFFF, 10, 0xFF000000);
+return Page_addAnnotEditbox2(m_page, rect, 0xFF000000, 1, 0xFFFFFFFF, 10, 0xFF000000);
 }
 -(void)dealloc
 {
@@ -1644,7 +1578,7 @@
 }
 -(bool)import:(int)src_no :(int)dst_no;
 {
-    return Document_importPage(m_doc, m_handle, src_no, dst_no );
+	return Document_importPage(m_doc, m_handle, src_no, dst_no );
 }
 -(void)importEnd
 {
@@ -1855,9 +1789,7 @@
 -(NSString *)meta:(NSString *)tag
 {
     const char *stag = [tag UTF8String];
-    char smeta[512];
-    Document_getMeta(m_doc, stag, smeta, 511);
-    return [NSString stringWithUTF8String: smeta];
+	return Document_getMeta(m_doc, stag);
 }
 
 -(bool)setMeta:(NSString *)tag :(NSString *)val

@@ -7,11 +7,11 @@
 
 
 #import <UIKit/UIKit.h>
-#import "RDUPassWord.h"
 #import "sys/utsname.h"
 #import "PDFHttpStream.h"
 #import "RDLoPDFViewController.h"
 #import "RDPDFReflowViewController.h"
+#import "RDPageViewController.h"
 #import "RDVGlobal.h"
 #import "PDFHttpStream.h"
 
@@ -32,6 +32,7 @@
 {
     RDLoPDFViewController *m_pdf;
     RDPDFReflowViewController *m_pdfR;
+    RDPageViewController *m_pdfP;
     NSMutableArray *m_files;
     void *buffer;
     PDFHttpStream *httpStream;
