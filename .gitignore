@@ -1,2 +1,3 @@
 src/ios/PDFViewer/Images.xcassets/AppIcon.appiconset/
 src/ios/PDFViewer.xcodeproj
+node_modules/
