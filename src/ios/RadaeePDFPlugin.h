@@ -1,6 +1,7 @@
 #import <Cordova/CDV.h>
 
 @class RDLoPDFViewController;
+@class RDPageViewController;
 
 // define the protocol for the delegate
 @protocol RadaeePDFPluginDelegate
@@ -19,6 +20,7 @@
 @interface RadaeePDFPlugin : CDVPlugin{
     CDVInvokedUrlCommand* cdv_command;
     RDLoPDFViewController *m_pdf;
+    RDPageViewController *m_pdfP;
     
     NSURLConnection *pdfConn;
     NSString *url;
@@ -26,22 +28,10 @@
     void *buffer;
     
     //colors
-    int inkColor;
-    int rectColor;
-    int underlineColor;
-    int strikeoutColor;
-    int highlightColor;
-    int ovalColor;
-    int selColor;
-    int arrowColor;
-    
-    int thumbBackgroundColor;
     int gridBackgroundColor;
-    int readerBackgroundColor;
     int titleBackgroundColor;
     int iconsBackgroundColor;
     
-    float thumbHeight;
     int gridElementHeight;
     int gridGap;
     int gridMode;
@@ -51,6 +41,7 @@
     BOOL firstPageCover;
     BOOL isImmersive;
     BOOL disableToolbar;
+    BOOL toolbarItemEdited;
     
     int bottomBar;
 }
@@ -69,7 +60,6 @@
 @property (nonatomic, retain) CDVInvokedUrlCommand *cdv_didTapOnAnnotationOfType;
 @property (nonatomic, retain) CDVInvokedUrlCommand *cdv_onAnnotExported;
 
-@property (nonatomic) int viewMode;
 @property (strong, nonatomic) NSString *lastOpenedPath;
 @property (strong, nonatomic) UIImage *viewModeImage;
 @property (strong, nonatomic) UIImage *searchImage;
@@ -94,6 +84,7 @@
 - (void)activateLicense:(CDVInvokedUrlCommand*)command;
 - (void)openFromAssets:(CDVInvokedUrlCommand*)command;
 - (void)openFromPath:(CDVInvokedUrlCommand*)command;
+- (void)closeReader:(CDVInvokedUrlCommand *)command;
 - (void)fileState:(CDVInvokedUrlCommand*)command;
 - (void)getPageNumber:(CDVInvokedUrlCommand*)command;
 - (void)getPageCount:(CDVInvokedUrlCommand*)command;

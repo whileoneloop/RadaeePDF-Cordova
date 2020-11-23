@@ -8,11 +8,8 @@
 #pragma once
 #import "PDFObjc.h"
 #import "RDVLayout.h"
-#import "RDVSel.h"
 #import "RDVFinder.h"
 #import "PDFOffScreenView.h"
-
-#import "ActionStackManager.h"
 
 #define UIColorFromRGB(rgbValue) \
 [UIColor colorWithRed:((float)((rgbValue & 0x00FF0000) >> 16))/255.0 \
@@ -46,6 +43,7 @@ alpha:((float)((rgbValue & 0xFF000000) >>  24))/255.0]
 - (void)OnAnnotEditBox :(CGRect)annotRect :(NSString *)editText :(float)textSize;
 - (void)OnAnnotCommboBox:(NSArray *)dataArray selected:(int)index;
 - (void)OnAnnotList:(PDFAnnot *)annot items :(NSArray *)dataArray selectedIndexes:(NSArray *)indexes;
+- (void)OnAnnotSignature:(PDFAnnot *)annot;
 - (void)didTapAnnot:(PDFAnnot *)annot atPage:(int)page atPoint:(CGPoint)point;
 
 @end
@@ -73,7 +71,6 @@ alpha:((float)((rgbValue & 0xFF000000) >>  24))/255.0]
     float m_zoom;
     RDVPos m_zoom_pos;
     CGPoint zoomPoint;
-    id<PDFLayoutDelegate> m_del;
     PDFOffScreenView *m_child;
     
     bool m_modified;
@@ -113,8 +110,6 @@ alpha:((float)((rgbValue & 0xFF000000) >>  24))/255.0]
     int m_ellipse_max;
     bool m_ellipse_drawing;
     
-    ActionStackManager *actionManger;
-    
     BOOL readOnlyEnabled;
     BOOL doublePage;
     
@@ -136,6 +131,9 @@ alpha:((float)((rgbValue & 0xFF000000) >>  24))/255.0]
     FTSOccurrence *currentOccurrence;
 #endif
 }
+
+@property (nonatomic) NSUInteger pageViewNo;
+@property (nonatomic, weak) id<PDFLayoutDelegate> m_del;
 
 -(id)initWithFrame:(CGRect)frame;
 -(BOOL)PDFOpen :(PDFDoc *)doc :(int)page_gap :(id<PDFLayoutDelegate>)del;
@@ -232,10 +230,12 @@ alpha:((float)((rgbValue & 0xFF000000) >>  24))/255.0]
 - (void)setFirstPageCover:(BOOL)cover;
 - (void)setDoubleTapZoomMode:(int)mode;
 
+/*
 - (CGImageRef )vGetImageForPage:(int)pg withSize:(CGSize)size withBackground:(BOOL)hasBackground;
 - (float)getViewWidth;
 - (float)getViewHeight;
 - (BOOL)isCurlEnabled;
+*/
 
 - (void)refreshCurrentPage;
 - (void)refreshCachedPages;
@@ -248,6 +248,7 @@ alpha:((float)((rgbValue & 0xFF000000) >>  24))/255.0]
 
 - (BOOL)saveImageFromAnnotAtIndex:(int)index atPage:(int)pageno savePath:(NSString *)path size:(CGSize )size;
 - (NSString *)getImageFromAnnot:(PDFAnnot *)annot;
+- (NSString *)emptyImageFromAnnot:(PDFAnnot *)annot;
 - (NSString *)emptyAnnotWithSize:(CGSize)size;
 
 - (BOOL)addAttachmentFromPath:(NSString *)path;
@@ -264,6 +265,8 @@ alpha:((float)((rgbValue & 0xFF000000) >>  24))/255.0]
 
 - (NSString *)getImageFromRect:(int)top :(int)right :(int)left :(int)bottom :(int)pageNum;
 - (PDF_RECT)pdfRectFromScreenRect:(CGRect)screenRect;
+
+- (void)OnDoubleTapOnPoint:(CGPoint)point;
 
 @end
 
